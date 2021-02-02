@@ -14,7 +14,7 @@ namespace PixelPaint
         /// </summary>
         public static Thread MainThread = Thread.CurrentThread;
         public static List<Thread> workers = new List<Thread>();
-        [MTAThread]
+        [STAThread]
         static void Main()
         {
             Application.EnableVisualStyles();

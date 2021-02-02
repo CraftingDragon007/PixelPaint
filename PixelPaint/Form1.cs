@@ -1,21 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace PixelPaint
 {
     public partial class Form1 : Form
     {
-
         public static List<Thread> threads = new List<Thread>();
 
         public Form1()
@@ -25,12 +16,6 @@ namespace PixelPaint
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            /*
-            Screen myScreen = Screen.FromControl(this);
-            Rectangle area = myScreen.WorkingArea;
-            this.Location = new Point(0, 0);
-            this.Size = area.Size;
-            */
             this.WindowState = FormWindowState.Normal;
         }
 
@@ -75,14 +60,13 @@ namespace PixelPaint
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            foreach(Thread thread in threads)
+            foreach (Thread thread in threads)
             {
                 if (thread.IsAlive)
                 {
                     thread.Abort();
                 }
             }
-
             Application.Exit();
         }
     }
