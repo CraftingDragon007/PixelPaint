@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -12,6 +15,9 @@ namespace PixelPaint
 {
     public partial class Form1 : Form
     {
+
+        public static List<Thread> threads = new List<Thread>();
+
         public Form1()
         {
             InitializeComponent();
@@ -25,15 +31,23 @@ namespace PixelPaint
             this.Location = new Point(0, 0);
             this.Size = area.Size;
             */
-            this.WindowState = FormWindowState.Maximized;
+            this.WindowState = FormWindowState.Normal;
         }
 
         private void neuToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            Thread thread = new Thread(CreateNew);
+            Form1.threads.Add(thread);
+            thread.Start();
+        }
+
+        private void CreateNew()
+        {
             Main main = new Main();
             main.TopLevel = false;
-            panel1.Controls.Add(main);
-            main.Show();
+            this.Invoke(new Action(() => { panel1.Controls.Add(main); }));
+            this.Invoke(new Action(() => { main.Show(); }));
+            main.NewProjekt();
         }
 
         private void öffnenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -43,12 +57,33 @@ namespace PixelPaint
 
             if (openFileDialog.ShowDialog().Equals(DialogResult.OK))
             {
-                Main main = new Main();
-                main.TopLevel = false;
-                panel1.Controls.Add(main);
-                main.Show();
-                main.Open(openFileDialog.FileName);
+                Thread thread = new Thread(() => { Open(openFileDialog.FileName); });
+                Form1.threads.Add(thread);
+                thread.Start();
             }
+        }
+
+        private void Open(string fileName)
+        {
+            Main main = new Main();
+            main.TopLevel = false;
+            this.Invoke(new Action(() => { panel1.Controls.Add(main); }));
+            this.Invoke(new Action(() => { panel1.Controls.Add(main); }));
+            this.Invoke(new Action(() => { main.Show(); }));
+            main.Open(fileName);
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            foreach(Thread thread in threads)
+            {
+                if (thread.IsAlive)
+                {
+                    thread.Abort();
+                }
+            }
+
+            Application.Exit();
         }
     }
 }

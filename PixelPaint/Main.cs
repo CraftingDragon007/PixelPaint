@@ -1,4 +1,6 @@
-﻿using System;
+﻿using PixelPaint.Properties;
+using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -16,6 +18,10 @@ namespace PixelPaint
         private String fileName = null;
         private Action lastAction = Action.nothing;
         private Size minimumSize = Size.Empty;
+        //private bool isLoaded;
+        private int s;
+
+        private List<Thread> threads = new List<Thread>();
 
         public Main()
         {
@@ -24,15 +30,16 @@ namespace PixelPaint
 
         public void changeTitle(String text)
         {
-            this.Text = /*"PixelPaint | " +*/ text;
+            this.Invoke(new System.Action(() => { this.Text = /*"PixelPaint | " +*/ text; }));   
             return;
         }
 
         private void Main_Load(object sender, EventArgs e)
         {
             this.minimumSize = this.Size;
-            changeTitle("Menü");
-            newProjekt();
+            this.Text = "Menü";
+            s = Settings.Default.PixelSize;
+            //newProjekt();
             //Form form = new Form();
             //form.TopLevel = false;
             //ImagePanel.Controls.Add((Control)form);
@@ -40,41 +47,51 @@ namespace PixelPaint
             //MenuPanel.Visible = false;
         }
 
-        private void newProjekt()
+        public void NewProjekt()
         {
-            changeTitle("Unbenannt*");
-            this.name = "Unbenannt";
-            ImagePanel.Controls.Clear();
-            px = 0;
-            //MenuPanel.Visible = false;
-            //EditorPanel.Visible = true;            
-            int x = 0;
-            int y = 0;
-            int s = Properties.Settings.Default.PixelSize;
-            //MessageBox.Show(ImagePanel.Height.ToString());
-            while (y + s <= ImagePanel.Height)
-            {
-                //this.changeTitle(y.ToString());
-                while (x + s <= ImagePanel.Width)
+            Thread thread = new Thread(() => {
+                //isLoaded = false;
+                //changeTitle("Unbenannt*");
+                this.Invoke(new System.Action(() => { this.Text = /*"PixelPaint | " +*/ "Unbenannt*"; }));
+                //this.name = "Unbenannt";
+                ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));              
+                px = 0;
+                //MenuPanel.Visible = false;
+                //EditorPanel.Visible = true;            
+                int x = 0;
+                int y = 0;
+                int s = this.s;
+                //MessageBox.Show(ImagePanel.Height.ToString());
+                while (y + s <= ImagePanel.Height)
                 {
-                    //MessageBox.Show("");
-                    PictureBox box = new PictureBox();
-                    box.Name = "Box" + px;
-                    box.Click += new EventHandler(Paint);
-                    box.Size = new Size(s, s);
-                    box.BackColor = Color.White;
-                    box.BorderStyle = BorderStyle.FixedSingle;
-                    box.Location = new Point(x, y);
-                    ImagePanel.Controls.Add((Control)box);
-                    x += s;
-                    px += 1;
-                    label2.Text = px.ToString();
-                    //MessageBox.Show(box.Name);
+                    //this.changeTitle(y.ToString());
+                    while (x + s <= ImagePanel.Width)
+                    {
+                        //MessageBox.Show("");
+                        PictureBox box = new PictureBox();
+                        box.Name = "Box" + px;
+                        box.Click += new EventHandler(Paint);
+                        box.Size = new Size(s, s);
+                        box.BackColor = Color.White;
+                        box.BorderStyle = BorderStyle.FixedSingle;
+                        box.Location = new Point(x, y);
+                        ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add((Control)box); }));
+                        
+                        x += s;
+                        px += 1;
+                        label2.Invoke(new System.Action(() => { label2.Text = px.ToString(); })); 
+                        //MessageBox.Show(box.Name);
+                    }
+                    x = 0;
+                    y += s;
                 }
-                x = 0;
-                y += s;
-            }
-            //MessageBox.Show("Finished!");
+
+                //isLoaded = true;
+                //MessageBox.Show("Finished!");
+            });
+            this.threads.Add(thread);
+            Form1.threads.Add(thread);
+            thread.Start();
         }
 
         private void Save(String fileName)
@@ -92,29 +109,73 @@ namespace PixelPaint
 
         public void Open(String fileName)
         {
+            Thread thread = new Thread(() => 
+            {
+            
             if (File.Exists(fileName))
             {
+                 this.Invoke(new System.Action(() => { this.Text = fileName.Substring(fileName.LastIndexOf("\\")+1).Replace(".pxp", ""); }));
                 StreamReader reader = new StreamReader(File.OpenRead(fileName));
                 String content = reader.ReadToEnd();
                 string[] result = content.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                 Properties.Settings.Default.PixelSize = int.Parse(result[0].Split('=')[1]);
                 Properties.Settings.Default.Save();
-                newProjekt();
-                changeTitle(fileName.Substring(fileName.LastIndexOf("\\")+1).Replace(".pxp", ""));
-                this.fileName = fileName;
+
+                    //changeTitle("Unbenannt*");
+                    this.Invoke(new System.Action(() => { this.Text = /*"PixelPaint | " +*/ "Unbenannt*"; }));
+                    //this.name = "Unbenannt";
+                    ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
+                    px = 0;
+                    //MenuPanel.Visible = false;
+                    //EditorPanel.Visible = true;            
+                    int x = 0;
+                    int y = 0;
+                    int s = int.Parse(result[0].Split('=')[1]);
+                    //MessageBox.Show(ImagePanel.Height.ToString());
+                    while (y + s <= ImagePanel.Height)
+                    {
+                        //this.changeTitle(y.ToString());
+                        while (x + s <= ImagePanel.Width)
+                        {
+                            //MessageBox.Show("");
+                            PictureBox box = new PictureBox();
+                            box.Name = "Box" + px;
+                            box.Click += new EventHandler(Paint);
+                            box.Size = new Size(s, s);
+                            box.BackColor = Color.White;
+                            box.BorderStyle = BorderStyle.FixedSingle;
+                            box.Location = new Point(x, y);
+                            ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add((Control)box); }));
+
+                            x += s;
+                            px += 1;
+                            label2.Invoke(new System.Action(() => { label2.Text = px.ToString(); }));
+                            //MessageBox.Show(box.Name);
+                        }
+                        x = 0;
+                        y += s;
+                    }
+
+                    this.fileName = fileName;
                 this.name = fileName.Substring(fileName.LastIndexOf("\\")+1).Replace(".pxp", "");
                 result = result.Where(val => val != result[0]).ToArray();
                 int i = 0;
+                //while (!isLoaded) { }
                 while (i < result.Length)
                 {
                     PictureBox box = (PictureBox)ImagePanel.Controls[i];
                     string[] vs = result[i].Split('|');
                     Color color = Color.FromArgb(int.Parse(vs[0]), int.Parse(vs[1]), int.Parse(vs[2]));
-                    box.BackColor = color;
+                    this.Invoke(new System.Action(() => { box.BackColor = color; }));
                     i++;
                 }
             }
             else MessageBox.Show("Der Pfad Existiert nicht", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //isLoaded = true;
+            });
+            this.threads.Add(thread);
+            Form1.threads.Add(thread);
+            thread.Start();
         }
 
         private new void Paint(object sender, EventArgs e)
@@ -136,7 +197,7 @@ namespace PixelPaint
 
         private void button3_Click(object sender, EventArgs e)
         {
-            newProjekt();
+            NewProjekt();
         }
 
         private void Green_CheckedChanged(object sender, EventArgs e)
@@ -198,9 +259,61 @@ namespace PixelPaint
             String value = Properties.Settings.Default.PixelSize.ToString();
             if (InputBox("PixelPaint | Grösse der Pixel", "Warnung! Wenn du fortfährst wird das Bild gelöscht!", ref value).Equals(DialogResult.OK))
             {
+                if(int.Parse(value) < 5)
+                {
+                    MessageBox.Show("Die minimale Pixel Grösse ist 5!", "Warnung", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
                 Properties.Settings.Default.PixelSize = int.Parse(value);
                 Properties.Settings.Default.Save();
-                newProjekt();
+
+                this.s = int.Parse(value);
+
+                Thread thread = new Thread(() => {
+                    //isLoaded = false;
+                    //changeTitle("Unbenannt*");
+                    this.Invoke(new System.Action(() => { this.Text = /*"PixelPaint | " +*/ "Unbenannt*"; }));
+                    //this.name = "Unbenannt";
+                    ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
+                    px = 0;
+                    //MenuPanel.Visible = false;
+                    //EditorPanel.Visible = true;            
+                    int x = 0;
+                    int y = 0;
+                    int s = this.s;
+                    //MessageBox.Show(ImagePanel.Height.ToString());
+                    while (y + s <= ImagePanel.Height)
+                    {
+                        //this.changeTitle(y.ToString());
+                        while (x + s <= ImagePanel.Width)
+                        {
+                            //MessageBox.Show("");
+                            PictureBox box = new PictureBox();
+                            box.Name = "Box" + px;
+                            box.Click += new EventHandler(Paint);
+                            box.Size = new Size(s, s);
+                            box.BackColor = Color.White;
+                            box.BorderStyle = BorderStyle.FixedSingle;
+                            box.Location = new Point(x, y);
+                            ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add((Control)box); }));
+
+                            x += s;
+                            px += 1;
+                            label2.Invoke(new System.Action(() => { label2.Text = px.ToString(); }));
+                            //MessageBox.Show(box.Name);
+                        }
+                        x = 0;
+                        y += s;
+                    }
+
+                    //isLoaded = true;
+                    //MessageBox.Show("Finished!");
+                });
+                this.threads.Add(thread);
+                Form1.threads.Add(thread);
+                thread.Start();
+
                 this.fileName = "";
             }
         }
@@ -209,7 +322,49 @@ namespace PixelPaint
         {
             if (MessageBox.Show("Wenn Sie fortfahren wird das Bild gelöscht!", "PixelPaint | Reset Bestätigung", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning).Equals(DialogResult.OK))
             {
-                newProjekt();
+                Thread thread = new Thread(() => {
+                    //isLoaded = false;
+                    //changeTitle("Unbenannt*");
+                    this.Invoke(new System.Action(() => { this.Text = /*"PixelPaint | " +*/ "Unbenannt*"; }));
+                    //this.name = "Unbenannt";
+                    ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
+                    px = 0;
+                    //MenuPanel.Visible = false;
+                    //EditorPanel.Visible = true;            
+                    int x = 0;
+                    int y = 0;
+                    int s = this.s;
+                    //MessageBox.Show(ImagePanel.Height.ToString());
+                    while (y + s <= ImagePanel.Height)
+                    {
+                        //this.changeTitle(y.ToString());
+                        while (x + s <= ImagePanel.Width)
+                        {
+                            //MessageBox.Show("");
+                            PictureBox box = new PictureBox();
+                            box.Name = "Box" + px;
+                            box.Click += new EventHandler(Paint);
+                            box.Size = new Size(s, s);
+                            box.BackColor = Color.White;
+                            box.BorderStyle = BorderStyle.FixedSingle;
+                            box.Location = new Point(x, y);
+                            ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add((Control)box); }));
+
+                            x += s;
+                            px += 1;
+                            label2.Invoke(new System.Action(() => { label2.Text = px.ToString(); }));
+                            //MessageBox.Show(box.Name);
+                        }
+                        x = 0;
+                        y += s;
+                    }
+
+                    //isLoaded = true;
+                    //MessageBox.Show("Finished!");
+                });
+                this.threads.Add(thread);
+                Form1.threads.Add(thread);
+                thread.Start();
                 this.fileName = "";
             }
         }
@@ -650,6 +805,7 @@ namespace PixelPaint
             this.Name = "Main";
             this.ShowIcon = false;
             this.Text = "Starting...";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
             this.Load += new System.EventHandler(this.Main_Load);
             this.ResizeBegin += new System.EventHandler(this.Main_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.Main_ResizeEnd);
@@ -733,6 +889,17 @@ namespace PixelPaint
             if (this.Size.Width * this.Size.Height < this.minimumSize.Width * this.minimumSize.Height)
             {
                 this.FormBorderStyle = FormBorderStyle.Sizable;
+            }
+        }
+
+        private void Main_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            foreach (Thread thread in threads)
+            {
+                if (thread.IsAlive)
+                {
+                    thread.Abort();
+                }
             }
         }
     }
