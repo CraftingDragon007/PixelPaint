@@ -2,7 +2,7 @@
 
 namespace PixelPaint
 {
-    partial class Main
+    partial class EditForm
     {
         /// <summary>
         /// Required designer variable.
@@ -29,49 +29,50 @@ namespace PixelPaint
         /// </summary>
         internal Label PixelLabel;
         internal RadioButton Green;
-        internal RadioButton Gelb;
-        internal RadioButton Rot;
-        internal RadioButton Blau;
+        internal RadioButton Yellow;
+        internal RadioButton Red;
+        internal RadioButton Blue;
         private Panel ImagePanel;
         private Label PixelSizeLabel;
         private RadioButton White;
         private RadioButton Black;
         private RadioButton Other;
         private Button BrowseColorsButton;
-        private MenuStrip menuStrip1;
+        private MenuStrip MenuStrip;
         private ToolStripMenuItem FileToolStripMenuItem;
         private ToolStripMenuItem OpenToolStripMenuItem;
         private ToolStripMenuItem SaveToolStripMenuItem;
-        private ToolStripMenuItem SaveUnderToolStripMenuItem;
+        private ToolStripMenuItem SaveAsToolStripMenuItem;
         private ToolStripMenuItem ResetToolStripMenuItem;
         private ToolStripMenuItem PixelSizeToolStripMenuItem;
+        private ToolStripMenuItem ExportToolStripMenuItem;
 
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(EditForm));
             this.PixelLabel = new System.Windows.Forms.Label();
             this.Green = new System.Windows.Forms.RadioButton();
-            this.Gelb = new System.Windows.Forms.RadioButton();
-            this.Rot = new System.Windows.Forms.RadioButton();
-            this.Blau = new System.Windows.Forms.RadioButton();
+            this.Yellow = new System.Windows.Forms.RadioButton();
+            this.Red = new System.Windows.Forms.RadioButton();
+            this.Blue = new System.Windows.Forms.RadioButton();
             this.ImagePanel = new System.Windows.Forms.Panel();
             this.PixelSizeLabel = new System.Windows.Forms.Label();
             this.White = new System.Windows.Forms.RadioButton();
             this.Black = new System.Windows.Forms.RadioButton();
             this.Other = new System.Windows.Forms.RadioButton();
             this.BrowseColorsButton = new System.Windows.Forms.Button();
-            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.MenuStrip = new System.Windows.Forms.MenuStrip();
             this.FileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.OpenToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SaveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.SaveUnderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.SaveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ResetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.PixelSizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ExportToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.EditToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.UndoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.RedoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.menuStrip1.SuspendLayout();
+            this.MenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // PixelLabel
@@ -98,47 +99,47 @@ namespace PixelPaint
             this.Green.UseVisualStyleBackColor = false;
             this.Green.CheckedChanged += new System.EventHandler(this.Green_CheckedChanged);
             // 
-            // Gelb
+            // Yellow
             // 
-            this.Gelb.AutoSize = true;
-            this.Gelb.BackColor = System.Drawing.Color.Yellow;
-            this.Gelb.Location = new System.Drawing.Point(12, 97);
-            this.Gelb.Margin = new System.Windows.Forms.Padding(2);
-            this.Gelb.Name = "Gelb";
-            this.Gelb.Size = new System.Drawing.Size(47, 17);
-            this.Gelb.TabIndex = 37;
-            this.Gelb.TabStop = true;
-            this.Gelb.Text = "Gelb";
-            this.Gelb.UseVisualStyleBackColor = false;
-            this.Gelb.CheckedChanged += new System.EventHandler(this.Gelb_CheckedChanged);
+            this.Yellow.AutoSize = true;
+            this.Yellow.BackColor = System.Drawing.Color.Yellow;
+            this.Yellow.Location = new System.Drawing.Point(12, 97);
+            this.Yellow.Margin = new System.Windows.Forms.Padding(2);
+            this.Yellow.Name = "Yellow";
+            this.Yellow.Size = new System.Drawing.Size(47, 17);
+            this.Yellow.TabIndex = 37;
+            this.Yellow.TabStop = true;
+            this.Yellow.Text = "Gelb";
+            this.Yellow.UseVisualStyleBackColor = false;
+            this.Yellow.CheckedChanged += new System.EventHandler(this.Yellow_CheckedChanged);
             // 
-            // Rot
+            // Red
             // 
-            this.Rot.AutoSize = true;
-            this.Rot.BackColor = System.Drawing.Color.Red;
-            this.Rot.Location = new System.Drawing.Point(12, 141);
-            this.Rot.Margin = new System.Windows.Forms.Padding(2);
-            this.Rot.Name = "Rot";
-            this.Rot.Size = new System.Drawing.Size(42, 17);
-            this.Rot.TabIndex = 39;
-            this.Rot.TabStop = true;
-            this.Rot.Text = "Rot";
-            this.Rot.UseVisualStyleBackColor = false;
-            this.Rot.CheckedChanged += new System.EventHandler(this.Rot_CheckedChanged);
+            this.Red.AutoSize = true;
+            this.Red.BackColor = System.Drawing.Color.Red;
+            this.Red.Location = new System.Drawing.Point(12, 141);
+            this.Red.Margin = new System.Windows.Forms.Padding(2);
+            this.Red.Name = "Red";
+            this.Red.Size = new System.Drawing.Size(42, 17);
+            this.Red.TabIndex = 39;
+            this.Red.TabStop = true;
+            this.Red.Text = "Rot";
+            this.Red.UseVisualStyleBackColor = false;
+            this.Red.CheckedChanged += new System.EventHandler(this.Red_CheckedChanged);
             // 
-            // Blau
+            // Blue
             // 
-            this.Blau.AutoSize = true;
-            this.Blau.BackColor = System.Drawing.Color.Blue;
-            this.Blau.Location = new System.Drawing.Point(12, 119);
-            this.Blau.Margin = new System.Windows.Forms.Padding(2);
-            this.Blau.Name = "Blau";
-            this.Blau.Size = new System.Drawing.Size(46, 17);
-            this.Blau.TabIndex = 38;
-            this.Blau.TabStop = true;
-            this.Blau.Text = "Blau";
-            this.Blau.UseVisualStyleBackColor = false;
-            this.Blau.CheckedChanged += new System.EventHandler(this.Blau_CheckedChanged);
+            this.Blue.AutoSize = true;
+            this.Blue.BackColor = System.Drawing.Color.Blue;
+            this.Blue.Location = new System.Drawing.Point(12, 119);
+            this.Blue.Margin = new System.Windows.Forms.Padding(2);
+            this.Blue.Name = "Blue";
+            this.Blue.Size = new System.Drawing.Size(46, 17);
+            this.Blue.TabIndex = 38;
+            this.Blue.TabStop = true;
+            this.Blue.Text = "Blau";
+            this.Blue.UseVisualStyleBackColor = false;
+            this.Blue.CheckedChanged += new System.EventHandler(this.Blue_CheckedChanged);
             // 
             // ImagePanel
             // 
@@ -206,23 +207,23 @@ namespace PixelPaint
             this.BrowseColorsButton.UseVisualStyleBackColor = true;
             this.BrowseColorsButton.Click += new System.EventHandler(this.BrowseColorsButton_Click);
             // 
-            // menuStrip1
+            // MenuStrip
             // 
-            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.MenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.FileToolStripMenuItem,
             this.EditToolStripMenuItem});
-            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
-            this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(800, 24);
-            this.menuStrip1.TabIndex = 52;
-            this.menuStrip1.Text = "menuStrip1";
+            this.MenuStrip.Location = new System.Drawing.Point(0, 0);
+            this.MenuStrip.Name = "MenuStrip";
+            this.MenuStrip.Size = new System.Drawing.Size(800, 24);
+            this.MenuStrip.TabIndex = 52;
+            this.MenuStrip.Text = "menuStrip1";
             // 
             // FileToolStripMenuItem
             // 
             this.FileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.OpenToolStripMenuItem,
             this.SaveToolStripMenuItem,
-            this.SaveUnderToolStripMenuItem,
+            this.SaveAsToolStripMenuItem,
             this.ResetToolStripMenuItem,
             this.PixelSizeToolStripMenuItem,
             this.ExportToolStripMenuItem});
@@ -233,44 +234,44 @@ namespace PixelPaint
             // OpenToolStripMenuItem
             // 
             this.OpenToolStripMenuItem.Name = "OpenToolStripMenuItem";
-            this.OpenToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.OpenToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.OpenToolStripMenuItem.Text = "Öffnen";
             this.OpenToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
             // 
             // SaveToolStripMenuItem
             // 
             this.SaveToolStripMenuItem.Name = "SaveToolStripMenuItem";
-            this.SaveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.SaveToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.SaveToolStripMenuItem.Text = "Speichern";
             this.SaveToolStripMenuItem.Click += new System.EventHandler(this.SaveEvent);
             // 
-            // SaveUnderToolStripMenuItem
+            // SaveAsToolStripMenuItem
             // 
-            this.SaveUnderToolStripMenuItem.Name = "SaveUnderToolStripMenuItem";
-            this.SaveUnderToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.SaveUnderToolStripMenuItem.Text = "Speichern unter...";
-            this.SaveUnderToolStripMenuItem.Click += new System.EventHandler(this.SaveUnder);
+            this.SaveAsToolStripMenuItem.Name = "SaveAsToolStripMenuItem";
+            this.SaveAsToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.SaveAsToolStripMenuItem.Text = "Speichern unter...";
+            this.SaveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveUnder);
             // 
             // ResetToolStripMenuItem
             // 
             this.ResetToolStripMenuItem.Name = "ResetToolStripMenuItem";
-            this.ResetToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.ResetToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.ResetToolStripMenuItem.Text = "Reset";
             this.ResetToolStripMenuItem.Click += new System.EventHandler(this.ResetPixels);
             // 
             // PixelSizeToolStripMenuItem
             // 
             this.PixelSizeToolStripMenuItem.Name = "PixelSizeToolStripMenuItem";
-            this.PixelSizeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.PixelSizeToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.PixelSizeToolStripMenuItem.Text = "Pixel Grösse..";
             this.PixelSizeToolStripMenuItem.Click += new System.EventHandler(this.ChangePixelSize);
             // 
             // ExportToolStripMenuItem
             // 
             this.ExportToolStripMenuItem.Name = "ExportToolStripMenuItem";
-            this.ExportToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.ExportToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.ExportToolStripMenuItem.Text = "Exportieren...";
-            this.ExportToolStripMenuItem.Click += new System.EventHandler(this.exportierenToolStripMenuItem_Click);
+            this.ExportToolStripMenuItem.Click += new System.EventHandler(this.ExportToolStripMenuItem_Click);
             // 
             // EditToolStripMenuItem
             // 
@@ -284,18 +285,18 @@ namespace PixelPaint
             // UndoToolStripMenuItem
             // 
             this.UndoToolStripMenuItem.Name = "UndoToolStripMenuItem";
-            this.UndoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.UndoToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.UndoToolStripMenuItem.Text = "Rückgängig";
-            this.UndoToolStripMenuItem.Click += new System.EventHandler(this.rückgängigToolStripMenuItem_Click);
+            this.UndoToolStripMenuItem.Click += new System.EventHandler(this.UndoToolStripMenuItem_Click);
             // 
             // RedoToolStripMenuItem
             // 
             this.RedoToolStripMenuItem.Name = "RedoToolStripMenuItem";
-            this.RedoToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.RedoToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
             this.RedoToolStripMenuItem.Text = "Wiederholen";
-            this.RedoToolStripMenuItem.Click += new System.EventHandler(this.wiederholenToolStripMenuItem_Click);
+            this.RedoToolStripMenuItem.Click += new System.EventHandler(this.RedoToolStripMenuItem_Click);
             // 
-            // Main
+            // EditForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -308,13 +309,13 @@ namespace PixelPaint
             this.Controls.Add(this.ImagePanel);
             this.Controls.Add(this.Green);
             this.Controls.Add(this.PixelLabel);
-            this.Controls.Add(this.Gelb);
-            this.Controls.Add(this.Rot);
-            this.Controls.Add(this.Blau);
-            this.Controls.Add(this.menuStrip1);
+            this.Controls.Add(this.Yellow);
+            this.Controls.Add(this.Red);
+            this.Controls.Add(this.Blue);
+            this.Controls.Add(this.MenuStrip);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MainMenuStrip = this.menuStrip1;
-            this.Name = "Main";
+            this.MainMenuStrip = this.MenuStrip;
+            this.Name = "EditForm";
             this.ShowIcon = false;
             this.Text = "Starting...";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
@@ -322,8 +323,8 @@ namespace PixelPaint
             this.ResizeBegin += new System.EventHandler(this.Main_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.Main_ResizeEnd);
             this.Resize += new System.EventHandler(this.Main_Resize);
-            this.menuStrip1.ResumeLayout(false);
-            this.menuStrip1.PerformLayout();
+            this.MenuStrip.ResumeLayout(false);
+            this.MenuStrip.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 

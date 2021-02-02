@@ -6,10 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
+using static PixelPaint.MainForm;
 
 namespace PixelPaint
 {
-    public partial class Main : Form
+    public partial class EditForm : Form
     {
         private int px = 0;
         private Color color = Color.White;
@@ -22,7 +23,7 @@ namespace PixelPaint
 
         private readonly List<Thread> threads = new List<Thread>();
 
-        public Main()
+        public EditForm()
         {
             InitializeComponent();
         }
@@ -36,15 +37,33 @@ namespace PixelPaint
         private void Main_Load(object sender, EventArgs e)
         {
             this.minimumSize = this.Size;
-            this.Text = "Menü";
+            this.Text = "Menu";
             s = Settings.Default.PixelSize;
+            FileToolStripMenuItem.Text = GetLang("File_Menu");
+            OpenToolStripMenuItem.Text = GetLang("Open_Menu_Item");
+            SaveToolStripMenuItem.Text = GetLang("Save_Menu_Item");
+            SaveAsToolStripMenuItem.Text = GetLang("Save_As_Menu_Item");
+            ResetToolStripMenuItem.Text = GetLang("Reset_Menu_Item");
+            PixelSizeToolStripMenuItem.Text = GetLang("Pixel_Size_Menu_Item");
+            ExportToolStripMenuItem.Text = GetLang("Export_Menu_Item");
+            EditToolStripMenuItem.Text = GetLang("Edit_Menu");
+            UndoToolStripMenuItem.Text = GetLang("Undo_Menu_Item");
+            RedoToolStripMenuItem.Text = GetLang("Redo_Menu_Item");
+            Black.Text = GetLang("Black_Label");
+            White.Text = GetLang("White_Label");
+            Green.Text = GetLang("Green_Label");
+            Yellow.Text = GetLang("Yellow_Label");
+            Blue.Text = GetLang("Blue_Label");
+            Red.Text = GetLang("Red_Label");
+            Other.Text = GetLang("Others_Label");
+            PixelLabel.Text = GetLang("Pixels_Label");
         }
 
         public void NewProjekt()
         {
             Thread thread = new Thread(() =>
             {
-                this.Invoke(new System.Action(() => { this.Text = "Unbenannt*"; }));
+                this.Invoke(new System.Action(() => { this.Text = MainForm.GetLang("Unnamed_Title"); }));
                 ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
                 px = 0;
                 int x = 0;
@@ -61,7 +80,7 @@ namespace PixelPaint
                         box.BackColor = Color.White;
                         box.BorderStyle = BorderStyle.FixedSingle;
                         box.Location = new Point(x, y);
-                        ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add((Control)box); }));
+                        ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add(box); }));
 
                         x += s;
                         px += 1;
@@ -72,7 +91,7 @@ namespace PixelPaint
                 }
             });
             this.threads.Add(thread);
-            Form1.threads.Add(thread);
+            MainForm.threads.Add(thread);
             thread.Start();
         }
 
@@ -102,7 +121,7 @@ namespace PixelPaint
                     string[] result = content.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                     Properties.Settings.Default.PixelSize = int.Parse(result[0].Split('=')[1]);
                     Properties.Settings.Default.Save();
-                    this.Invoke(new System.Action(() => { this.Text = "Unbenannt*"; }));
+                    this.Invoke(new System.Action(() => { this.Text = MainForm.GetLang("Unnamed_Title"); }));
                     ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
                     px = 0;
                     int x = 0;
@@ -142,10 +161,10 @@ namespace PixelPaint
                         i++;
                     }
                 }
-                else MessageBox.Show("Der Pfad Existiert nicht", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                else MessageBox.Show(GetLang("Path_Not_Exists"), GetLang("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             });
             this.threads.Add(thread);
-            Form1.threads.Add(thread);
+            MainForm.threads.Add(thread);
             thread.Start();
         }
 
@@ -158,12 +177,12 @@ namespace PixelPaint
 
         private void Undo()
         {
-            lastAction.undo();
+            lastAction.Undo();
         }
 
         private void Redo()
         {
-            lastAction.redo();
+            lastAction.Redo();
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -176,17 +195,17 @@ namespace PixelPaint
             this.color = Color.Lime;
         }
 
-        private void Gelb_CheckedChanged(object sender, EventArgs e)
+        private void Yellow_CheckedChanged(object sender, EventArgs e)
         {
             this.color = Color.Yellow;
         }
 
-        private void Blau_CheckedChanged(object sender, EventArgs e)
+        private void Blue_CheckedChanged(object sender, EventArgs e)
         {
             this.color = Color.Blue;
         }
 
-        private void Rot_CheckedChanged(object sender, EventArgs e)
+        private void Red_CheckedChanged(object sender, EventArgs e)
         {
             this.color = Color.Red;
         }
@@ -228,11 +247,11 @@ namespace PixelPaint
         private void ChangePixelSize(object sender, EventArgs e)
         {
             String value = Properties.Settings.Default.PixelSize.ToString();
-            if (InputBox("PixelPaint | Grösse der Pixel", "Warnung! Wenn du fortfährst wird das Bild gelöscht!", ref value).Equals(DialogResult.OK))
+            if (InputBox("PixelPaint | " + GetLang("Pixel_Size_Menu_Item"), GetLang("Image_Reset_Warning"), ref value).Equals(DialogResult.OK))
             {
                 if (int.Parse(value) < 5)
                 {
-                    MessageBox.Show("Die minimale Pixel Grösse ist 5!", "Warnung", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(GetLang("Min_Pixel_Size_Error"), GetLang("Error"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     return;
                 }
 
@@ -243,7 +262,7 @@ namespace PixelPaint
 
                 Thread thread = new Thread(() =>
                 {
-                    this.Invoke(new System.Action(() => { this.Text = "Unbenannt*"; }));
+                    this.Invoke(new System.Action(() => { this.Text = MainForm.GetLang("Unnamed_Title"); }));
                     ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
                     px = 0;
                     int x = 0;
@@ -271,7 +290,7 @@ namespace PixelPaint
                     }
                 });
                 this.threads.Add(thread);
-                Form1.threads.Add(thread);
+                MainForm.threads.Add(thread);
                 thread.Start();
 
                 this.fileName = "";
@@ -280,11 +299,11 @@ namespace PixelPaint
 
         private void ResetPixels(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Wenn Sie fortfahren wird das Bild gelöscht!", "PixelPaint | Reset Bestätigung", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning).Equals(DialogResult.OK))
+            if (MessageBox.Show(GetLang("Image_Reset_Warning"), "PixelPaint | " + GetLang("Reset_Confirmation"), MessageBoxButtons.OKCancel, MessageBoxIcon.Warning).Equals(DialogResult.OK))
             {
                 Thread thread = new Thread(() =>
                 {
-                    this.Invoke(new System.Action(() => { this.Text = "Unbenannt*"; }));
+                    this.Invoke(new System.Action(() => { this.Text = MainForm.GetLang("Unnamed_Title"); }));
                     ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
                     px = 0;
                     int x = 0;
@@ -312,7 +331,7 @@ namespace PixelPaint
                     }
                 });
                 this.threads.Add(thread);
-                Form1.threads.Add(thread);
+                MainForm.threads.Add(thread);
                 thread.Start();
                 this.fileName = "";
             }
@@ -331,7 +350,7 @@ namespace PixelPaint
             textBox.Text = value;
 
             buttonOk.Text = "OK";
-            buttonCancel.Text = "Abbrechen";
+            buttonCancel.Text = "Cancel";
             buttonOk.DialogResult = DialogResult.OK;
             buttonCancel.DialogResult = DialogResult.Cancel;
 
@@ -371,14 +390,14 @@ namespace PixelPaint
                 }
                 catch (Exception error)
                 {
-                    MessageBox.Show(error.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(error.Message, GetLang("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             else
             {
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "PixelPaintDateien(*.pxp)|*.pxp";
-                saveFileDialog.Title = "PixelPaint | Bild speichern";
+                saveFileDialog.Filter = "PixelPaintFile(*.pxp)|*.pxp";
+                saveFileDialog.Title = "PixelPaint | " + MainForm.GetLang("Picture") + " " + MainForm.GetLang("Save_Menu_Item");
                 saveFileDialog.FileName = "";
                 saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 if (saveFileDialog.ShowDialog().Equals(DialogResult.OK))
@@ -393,8 +412,8 @@ namespace PixelPaint
         private void SaveUnder(object sender, EventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "PixelPaintDateien(*.pxp)|*.pxp";
-            saveFileDialog.Title = "PixelPaint | Bild speichern";
+            saveFileDialog.Filter = "PixelPaintFile(*.pxp)|*.pxp";
+            saveFileDialog.Title = "PixelPaint | " + MainForm.GetLang("Picture") + " " + MainForm.GetLang("Save_Menu_Item");
             saveFileDialog.FileName = "";
             saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (saveFileDialog.ShowDialog().Equals(DialogResult.OK))
@@ -439,7 +458,7 @@ namespace PixelPaint
                 this.after = Color.White;
             }
 
-            public Color undo()
+            public Color Undo()
             {
                 if (!isNothing)
                 {
@@ -451,7 +470,7 @@ namespace PixelPaint
                 }
             }
 
-            public Color redo()
+            public Color Redo()
             {
                 if (!isNothing)
                 {
@@ -466,24 +485,25 @@ namespace PixelPaint
 
 
 
-        private void rückgängigToolStripMenuItem_Click(object sender, EventArgs e)
+        private void UndoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Undo();
         }
 
-        private void wiederholenToolStripMenuItem_Click(object sender, EventArgs e)
+        private void RedoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Redo();
         }
 
         private void Export(String filename)
         {
+            //TODO: Make this working!
+
             Point position = this.Location;
             Point point = ImagePanel.Location;
             this.FormBorderStyle = FormBorderStyle.None;
             ImagePanel.Location = new Point(0, 0);
             this.Location = new Point(0, 0);
-            //Rectangle bounds = this.Bounds;
             Rectangle rectangle = ImagePanel.Bounds;
             using (Bitmap bitmap = new Bitmap(rectangle.Width, rectangle.Height))
             {
@@ -498,13 +518,11 @@ namespace PixelPaint
             }
         }
 
-        private ToolStripMenuItem ExportToolStripMenuItem;
-
-        private void exportierenToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ExportToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "PNG Bild(*.png)|*.png";
-            saveFileDialog.Title = "PixelPaint | Bild speichern";
+            saveFileDialog.Filter = "PNG " + MainForm.GetLang("Picture") + "(*.png)|*.png";
+            saveFileDialog.Title = "PixelPaint | " + MainForm.GetLang("Picture") + " " + MainForm.GetLang("Save_Menu_Item");
             saveFileDialog.FileName = "";
             saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (saveFileDialog.ShowDialog().Equals(DialogResult.OK))

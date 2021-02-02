@@ -117,184 +117,85 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="DE_BLACK" xml:space="preserve">
-    <value>Schwarz</value>
-  </data>
-  <data name="DE_BLUE" xml:space="preserve">
-    <value>Blau</value>
-  </data>
-  <data name="DE_EDIT" xml:space="preserve">
-    <value>Bearbeiten</value>
-  </data>
-  <data name="DE_EXPORT" xml:space="preserve">
-    <value>Exportieren</value>
-  </data>
-  <data name="DE_FILE" xml:space="preserve">
-    <value>Datei</value>
-  </data>
-  <data name="DE_GREEN" xml:space="preserve">
-    <value>Grün</value>
-  </data>
-  <data name="DE_NEW" xml:space="preserve">
-    <value>Neu</value>
-  </data>
-  <data name="DE_OPEN" xml:space="preserve">
-    <value>Öffnen</value>
-  </data>
-  <data name="DE_OTHERS" xml:space="preserve">
-    <value>andere</value>
-  </data>
-  <data name="DE_PIXELS" xml:space="preserve">
-    <value>Pixel:</value>
-  </data>
-  <data name="DE_PIXELSIZE" xml:space="preserve">
-    <value>Pixel Grösse...</value>
-  </data>
-  <data name="DE_RED" xml:space="preserve">
-    <value>Rot</value>
-  </data>
-  <data name="DE_REDO" xml:space="preserve">
-    <value>Wiederholen</value>
-  </data>
-  <data name="DE_RESET" xml:space="preserve">
-    <value>Reset</value>
-  </data>
-  <data name="DE_SAVE" xml:space="preserve">
-    <value>Speichern</value>
-  </data>
-  <data name="DE_SAVEAS" xml:space="preserve">
-    <value>Speichern unter...</value>
-  </data>
-  <data name="DE_UNDO" xml:space="preserve">
-    <value>Rückgängig</value>
-  </data>
-  <data name="DE_UNNAMED" xml:space="preserve">
-    <value>Unbennant</value>
-  </data>
-  <data name="DE_WHITE" xml:space="preserve">
-    <value>Weiss</value>
-  </data>
-  <data name="DE_YELLOW" xml:space="preserve">
-    <value>Gelb</value>
-  </data>
-  <data name="EN_BLACK" xml:space="preserve">
+  <data name="Black_Label" xml:space="preserve">
     <value>Black</value>
   </data>
-  <data name="EN_BLUE" xml:space="preserve">
+  <data name="Blue_Label" xml:space="preserve">
     <value>Blue</value>
   </data>
-  <data name="EN_EDIT" xml:space="preserve">
+  <data name="Edit_Menu" xml:space="preserve">
     <value>Edit</value>
   </data>
-  <data name="EN_EXPORT" xml:space="preserve">
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Export_Menu_Item" xml:space="preserve">
     <value>Export</value>
   </data>
-  <data name="EN_FILE" xml:space="preserve">
+  <data name="File_Menu" xml:space="preserve">
     <value>File</value>
   </data>
-  <data name="EN_GREEN" xml:space="preserve">
+  <data name="Green_Label" xml:space="preserve">
     <value>Green</value>
   </data>
-  <data name="EN_NEW" xml:space="preserve">
+  <data name="Image_Reset_Warning" xml:space="preserve">
+    <value>Warning! If you continue, the image will be deleted!</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Min_Pixel_Size_Error" xml:space="preserve">
+    <value>The minimum pixel size is 5!</value>
+  </data>
+  <data name="New_Menu_Item" xml:space="preserve">
     <value>New</value>
   </data>
-  <data name="EN_OPEN" xml:space="preserve">
+  <data name="Open_Menu_Item" xml:space="preserve">
     <value>Open</value>
   </data>
-  <data name="EN_OTHERS" xml:space="preserve">
-    <value>others</value>
+  <data name="Others_Label" xml:space="preserve">
+    <value>Others</value>
   </data>
-  <data name="EN_PIXELS" xml:space="preserve">
+  <data name="Path_Not_Exists" xml:space="preserve">
+    <value>The path does not exist!</value>
+  </data>
+  <data name="Picture" xml:space="preserve">
+    <value>Picture</value>
+  </data>
+  <data name="Pixels_Label" xml:space="preserve">
     <value>Pixels:</value>
   </data>
-  <data name="EN_PIXELSIZE" xml:space="preserve">
+  <data name="Pixel_Size_Menu_Item" xml:space="preserve">
     <value>Pixel Size...</value>
   </data>
-  <data name="EN_RED" xml:space="preserve">
-    <value>Red</value>
-  </data>
-  <data name="EN_REDO" xml:space="preserve">
+  <data name="Redo_Menu_Item" xml:space="preserve">
     <value>Redo</value>
   </data>
-  <data name="EN_RESET" xml:space="preserve">
+  <data name="Red_Label" xml:space="preserve">
+    <value>Red</value>
+  </data>
+  <data name="Reset_Confirmation" xml:space="preserve">
+    <value>Reset Confirmation</value>
+  </data>
+  <data name="Reset_Menu_Item" xml:space="preserve">
     <value>Reset</value>
   </data>
-  <data name="EN_SAVE" xml:space="preserve">
-    <value>Save</value>
-  </data>
-  <data name="EN_SAVEAS" xml:space="preserve">
+  <data name="Save_As_Menu_Item" xml:space="preserve">
     <value>Save as...</value>
   </data>
-  <data name="EN_UNDO" xml:space="preserve">
+  <data name="Save_Menu_Item" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Undo_Menu_Item" xml:space="preserve">
     <value>Undo</value>
   </data>
-  <data name="EN_UNNAMED" xml:space="preserve">
+  <data name="Unnamed_Title" xml:space="preserve">
     <value>Unnamed*</value>
   </data>
-  <data name="EN_WHITE" xml:space="preserve">
+  <data name="White_Label" xml:space="preserve">
     <value>White</value>
   </data>
-  <data name="EN_YELLOW" xml:space="preserve">
+  <data name="Yellow_Label" xml:space="preserve">
     <value>Yellow</value>
-  </data>
-  <data name="FR_BLACK" xml:space="preserve">
-    <value>Noir</value>
-  </data>
-  <data name="FR_BLUE" xml:space="preserve">
-    <value>Bleu</value>
-  </data>
-  <data name="FR_EDIT" xml:space="preserve">
-    <value>Edition</value>
-  </data>
-  <data name="FR_EXPORT" xml:space="preserve">
-    <value>Exporter</value>
-  </data>
-  <data name="FR_FILE" xml:space="preserve">
-    <value>Fichier</value>
-  </data>
-  <data name="FR_GREEN" xml:space="preserve">
-    <value>Vert</value>
-  </data>
-  <data name="FR_NEW" xml:space="preserve">
-    <value>Nouveau</value>
-  </data>
-  <data name="FR_OPEN" xml:space="preserve">
-    <value>Ouvrir</value>
-  </data>
-  <data name="FR_OTHERS" xml:space="preserve">
-    <value>Autres</value>
-  </data>
-  <data name="FR_PIXELS" xml:space="preserve">
-    <value>Pixels</value>
-  </data>
-  <data name="FR_PIXELSIZE" xml:space="preserve">
-    <value>Taille de pixel</value>
-  </data>
-  <data name="FR_RED" xml:space="preserve">
-    <value>Rouge</value>
-  </data>
-  <data name="FR_REDO" xml:space="preserve">
-    <value>Refaire</value>
-  </data>
-  <data name="FR_RESET" xml:space="preserve">
-    <value>Réinitialiser</value>
-  </data>
-  <data name="FR_SAVE" xml:space="preserve">
-    <value>Enregistrer</value>
-  </data>
-  <data name="FR_SAVEAS" xml:space="preserve">
-    <value>Enregistrer sous</value>
-  </data>
-  <data name="FR_UNDO" xml:space="preserve">
-    <value>Annuler</value>
-  </data>
-  <data name="FR_UNNAMED" xml:space="preserve">
-    <value>Anonyme*</value>
-  </data>
-  <data name="FR_WHITE" xml:space="preserve">
-    <value>Blanc</value>
-  </data>
-  <data name="FR_YELLOW" xml:space="preserve">
-    <value>Jaune</value>
   </data>
 </root>
