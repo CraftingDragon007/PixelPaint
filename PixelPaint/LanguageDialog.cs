@@ -26,6 +26,7 @@ namespace PixelPaint
 
         private void CancelButton_Click(object sender, EventArgs e)
         {
+            this.DialogResult = DialogResult.Cancel;
             this.Close();
         }
 
@@ -42,7 +43,10 @@ namespace PixelPaint
                 case 2:
                     LanguageIndex = CultureInfo.CreateSpecificCulture("fr");
                     break;
+                default:
+                    return;
             }
+            this.DialogResult = DialogResult.OK;
             this.Close();
         }
 

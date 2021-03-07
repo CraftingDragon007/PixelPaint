@@ -90,7 +90,9 @@ namespace PixelPaint
         {
             LanguageDialog dialog = new LanguageDialog();
             dialog.LanguageIndex = CultureInfo;
-            dialog.ShowDialog();
+            if (dialog.ShowDialog().Equals(DialogResult.Cancel)){
+                return;
+            }
             CultureInfo = dialog.LanguageIndex;
             Settings.Default.Language = CultureInfo;
             Settings.Default.Save();

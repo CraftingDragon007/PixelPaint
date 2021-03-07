@@ -55,11 +55,6 @@
     <Compile Include="LanguageDialog.Designer.cs">
       <DependentUpon>LanguageDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Languages\Res.en.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Res.en.resx</DependentUpon>
-    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>

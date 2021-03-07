@@ -121,7 +121,7 @@ namespace PixelPaint
                     string[] result = content.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                     Properties.Settings.Default.PixelSize = int.Parse(result[0].Split('=')[1]);
                     Properties.Settings.Default.Save();
-                    this.Invoke(new System.Action(() => { this.Text = MainForm.GetLang("Unnamed_Title"); }));
+                    this.Invoke(new System.Action(() => { this.Text = fileName; }));
                     ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
                     px = 0;
                     int x = 0;
@@ -166,6 +166,8 @@ namespace PixelPaint
             this.threads.Add(thread);
             MainForm.threads.Add(thread);
             thread.Start();
+
+
         }
 
         private new void Paint(object sender, EventArgs e)
@@ -499,21 +501,21 @@ namespace PixelPaint
         {
             //TODO: Make this working!
 
-            Point position = this.Location;
+            //Point position = this.Location;
             Point point = ImagePanel.Location;
-            this.FormBorderStyle = FormBorderStyle.None;
-            ImagePanel.Location = new Point(0, 0);
-            this.Location = new Point(0, 0);
+            //this.FormBorderStyle = FormBorderStyle.None;
+            //ImagePanel.Location = new Point(0, 0);
+            //this.Location = new Point(0, 0);
             Rectangle rectangle = ImagePanel.Bounds;
             using (Bitmap bitmap = new Bitmap(rectangle.Width, rectangle.Height))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.CopyFromScreen(new Point(rectangle.Left, rectangle.Top), Point.Empty, rectangle.Size);
+                    g.CopyFromScreen(PointToScreen(point), Point.Empty, rectangle.Size);
                 }
-                this.Location = position;
-                ImagePanel.Location = point;
-                this.FormBorderStyle = FormBorderStyle.Sizable;
+                //this.Location = position;
+                //ImagePanel.Location = point;
+                //this.FormBorderStyle = FormBorderStyle.Sizable;
                 bitmap.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
             }
         }
