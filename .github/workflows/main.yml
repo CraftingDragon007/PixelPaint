@@ -2,11 +2,12 @@ name: CI
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Upload Release Asset
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -34,6 +35,12 @@ jobs:
  
       - name: Build and Publish Web App
         run: msbuild PixelPaint.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
+      
+      - name: Zip Output
+        uses: papeloto/action-zip@v1
+        with:
+          files: PixelPaint/bin/Release/
+          dest: result.zip
  
       - name: Release
         uses: actions/create-release@v1
@@ -46,3 +53,14 @@ jobs:
           release_name: ${{ steps.version.outputs.version }}
           tag_name: ${{ github.ref }}
           body_path: CHANGELOG.md
+
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./result.zip
+          asset_name: PixelPaint_Windows.zip
+          asset_content_type: application/zip

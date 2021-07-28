@@ -1,1 +1,1 @@
-- Added automatic Releases throu GitHub Actions
+- Added automatic Releases through GitHub Actions
