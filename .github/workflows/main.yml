@@ -36,7 +36,7 @@ jobs:
         run: msbuild PixelPaint.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
  
       - name: Upload Artifact
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2.2.4
         with:
           name: published_pixelpaint
-          path: bin\Release\Publish
+          path: bin\Release\
