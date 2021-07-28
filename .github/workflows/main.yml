@@ -38,5 +38,5 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2.2.4
         with:
-          name: published_pixelpaint
+          name: PixelPaint_Windows
           path: PixelPaint\bin\Release\
