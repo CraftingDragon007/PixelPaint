@@ -1,1 +1,2 @@
+- Version 1.0
 - Added automatic Releases through GitHub Actions
