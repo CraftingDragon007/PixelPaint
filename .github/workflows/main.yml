@@ -1,5 +1,3 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
 # Controls when the workflow will run
@@ -18,23 +16,27 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
-      - name: .NetFramework Action Template
-        # You may pin to the exact commit or the version.
-        # uses: auycro/netframework-action-template@deba41046476eafda3085696a64fd529fcca0bad
-        uses: auycro/netframework-action-template@v0.0.2
+      - name: Setup MSBuild Path
+        uses: warrenbuckley/Setup-MSBuild@v1
+       
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1.0.2
+     
+      - name: Restore NuGet Packages
+        run: nuget restore PixelPaint.sln
+ 
+      - name: Build and Publish Web App
+        run: msbuild PixelPaint.sln /p:Configuration=Release /p:DeployOnBuild=true /p:PublishProfile=FolderProfile
+ 
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: published_pixelpaint
+          path: bin\Release\Publish
