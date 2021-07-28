@@ -39,4 +39,4 @@ jobs:
         uses: actions/upload-artifact@v2.2.4
         with:
           name: published_pixelpaint
-          path: bin\Release\
+          path: PixelPaint\bin\Release\
