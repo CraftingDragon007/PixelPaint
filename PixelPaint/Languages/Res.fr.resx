@@ -129,6 +129,9 @@
   <data name="Error" xml:space="preserve">
     <value>Erreur</value>
   </data>
+  <data name="Error_Invalid_File" xml:space="preserve">
+    <value>Fichier inconnu ou corrompu</value>
+  </data>
   <data name="Export_Menu_Item" xml:space="preserve">
     <value>Exporter</value>
   </data>

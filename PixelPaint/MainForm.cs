@@ -54,23 +54,26 @@ namespace PixelPaint
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "PixelPaintDateien(*.pxp)|*.pxp";
+            openFileDialog.Filter = "BetterPixelPaintFile(*.bxp)|*.bxp|PixelPaintFile(*.pxp)|*.pxp";
 
             if (openFileDialog.ShowDialog().Equals(DialogResult.OK))
             {
-                Thread thread = new Thread(() => { Open(openFileDialog.FileName); });
+                var newFormat = openFileDialog.FilterIndex == 1;
+                Thread thread = new Thread(() => { Open(openFileDialog.FileName, newFormat); });
                 MainForm.threads.Add(thread);
                 thread.Start();
             }
         }
 
-        private void Open(string fileName)
+        private void Open(string fileName, bool newFormat)
         {
             EditForm main = new EditForm();
             main.TopLevel = false;
             this.Invoke(new Action(() => { panel1.Controls.Add(main); }));
             this.Invoke(new Action(() => { panel1.Controls.Add(main); }));
             this.Invoke(new Action(() => { main.Show(); }));
+            if (newFormat) main.NewOpen(fileName);
+            else
             main.Open(fileName);
         }
 

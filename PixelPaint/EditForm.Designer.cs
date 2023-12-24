@@ -148,6 +148,8 @@ namespace PixelPaint
             this.ImagePanel.Name = "ImagePanel";
             this.ImagePanel.Size = new System.Drawing.Size(653, 319);
             this.ImagePanel.TabIndex = 43;
+            this.ImagePanel.MouseDown += new System.Windows.Forms.MouseEventHandler(this.Down);
+            this.ImagePanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.Up);
             // 
             // PixelSizeLabel
             // 
@@ -243,14 +245,14 @@ namespace PixelPaint
             this.SaveToolStripMenuItem.Name = "SaveToolStripMenuItem";
             this.SaveToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.SaveToolStripMenuItem.Text = "Speichern";
-            this.SaveToolStripMenuItem.Click += new System.EventHandler(this.SaveEvent);
+            this.SaveToolStripMenuItem.Click += new System.EventHandler(this.NewSaveEvent);
             // 
             // SaveAsToolStripMenuItem
             // 
             this.SaveAsToolStripMenuItem.Name = "SaveAsToolStripMenuItem";
             this.SaveAsToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.SaveAsToolStripMenuItem.Text = "Speichern unter...";
-            this.SaveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveUnder);
+            this.SaveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAs);
             // 
             // ResetToolStripMenuItem
             // 
@@ -318,10 +320,12 @@ namespace PixelPaint
             this.Name = "EditForm";
             this.ShowIcon = false;
             this.Text = "Starting...";
+            this.Activated += new System.EventHandler(this.EditForm_Activated);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
             this.Load += new System.EventHandler(this.Main_Load);
             this.ResizeBegin += new System.EventHandler(this.Main_ResizeBegin);
             this.ResizeEnd += new System.EventHandler(this.Main_ResizeEnd);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.PaintMove);
             this.Resize += new System.EventHandler(this.Main_Resize);
             this.MenuStrip.ResumeLayout(false);
             this.MenuStrip.PerformLayout();

@@ -1,9 +1,11 @@
 ﻿using PixelPaint.Properties;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using static PixelPaint.MainForm;
@@ -20,6 +22,7 @@ namespace PixelPaint
         private Action lastAction = Action.nothing;
         private Size minimumSize = Size.Empty;
         private int s;
+        private bool mouseDown = false;
 
         private readonly List<Thread> threads = new List<Thread>();
 
@@ -75,7 +78,12 @@ namespace PixelPaint
                     {
                         PictureBox box = new PictureBox();
                         box.Name = "Box" + px;
+                        box.Text = box.Name;
                         box.Click += new EventHandler(Paint);
+                        box.MouseEnter += new EventHandler(PaintDown);
+                        box.MouseDown += new MouseEventHandler(Down);
+                        box.MouseUp += new MouseEventHandler(Up);
+                        box.MouseMove += new MouseEventHandler(PaintMove);
                         box.Size = new Size(s, s);
                         box.BackColor = Color.White;
                         box.BorderStyle = BorderStyle.FixedSingle;
@@ -95,10 +103,10 @@ namespace PixelPaint
             thread.Start();
         }
 
-        private void Save(String fileName)
+        private void SaveOld(String fileName)
         {
             StreamWriter writer = new StreamWriter(File.OpenWrite(fileName));
-            writer.WriteLine("Size=" + Properties.Settings.Default.PixelSize);
+            writer.WriteLine("Size=" + Settings.Default.PixelSize);
             foreach (Control control in ImagePanel.Controls)
             {
                 PictureBox box = (PictureBox)control;
@@ -108,6 +116,121 @@ namespace PixelPaint
             writer.Close();
         }
 
+        private void NewSave(string fileName)
+        {
+            var stream = File.OpenWrite(fileName);
+            stream.Position = 0;
+            var header = Encoding.ASCII.GetBytes("PixelPaint");
+            stream.Write(header, 0, header.Length);
+            var size = BitConverter.GetBytes(Settings.Default.PixelSize);
+            stream.WriteByte((byte)size.Length);
+            stream.Write(size, 0, size.Length);
+            stream.WriteByte(77);
+            var fileSize = BitConverter.GetBytes(ImagePanel.Controls.Count * 3);
+            var fSizeLength = (byte)fileSize.Length;
+            stream.WriteByte(fSizeLength);
+            stream.WriteByte(77);
+            stream.Write(fileSize, 0, fileSize.Length);
+            stream.WriteByte(77);
+            stream.Flush();
+            
+            foreach (var control in ImagePanel.Controls)
+            {
+                PictureBox box = (PictureBox)control;
+                var color = box.BackColor;
+                stream.WriteByte(color.R);
+                stream.WriteByte(color.G);
+                stream.WriteByte(color.B);
+            }
+            stream.Flush();
+            stream.Close();
+        }
+
+        public void NewOpen(string fileName)
+        {
+            if (!File.Exists(fileName))
+            {
+                MessageBox.Show(GetLang("Path_Not_Exists"), GetLang("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    var name = fileName.Substring(fileName.LastIndexOf('\\') + 1);
+                    Invoke(new System.Action(() => { Text = name; }));
+                    var stream = File.OpenRead(fileName);
+                    var header = Encoding.ASCII.GetBytes("PixelPaint");
+                    var headerBuffer = new byte[header.Length];
+                    stream.Read(headerBuffer, 0, headerBuffer.Length);
+                    if (!headerBuffer.SequenceEqual(header))
+                    {
+                        stream.Close();
+                        throw new FormatException();
+                    }
+                    var pixelSizeLength = stream.ReadByte();
+                    var pixelSize = new byte[pixelSizeLength];
+                    stream.Read(pixelSize, 0, pixelSize.Length);
+                    Settings.Default.PixelSize = BitConverter.ToInt32(pixelSize, 0);
+                    Settings.Default.Save();
+                    s = Settings.Default.PixelSize;
+                    stream.ReadByte();
+                    var fileSizeLength = stream.ReadByte();
+                    stream.ReadByte();
+                    var fileSize = new byte[fileSizeLength];
+                    stream.Read(fileSize, 0, fileSize.Length);
+                    var fileSizeAsInt = BitConverter.ToInt32(fileSize, 0);
+                    stream.ReadByte();
+                    var pixelCount = fileSizeAsInt / 3;
+                    if(pixelCount  <= 0)
+                    {
+                        throw new FormatException();
+                    }
+                    ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
+                    int x = 0; int y = 0;
+                    for (int i = 0; i < pixelCount; i++)
+                    {
+                        var r = stream.ReadByte();
+                        var g = stream.ReadByte();
+                        var b = stream.ReadByte();
+                        var color = Color.FromArgb(r, g, b);
+                        if (x + s >= ImagePanel.Width)
+                        {
+                            x = 0;
+                            y += s;
+                        }
+                        var box = new PictureBox
+                        {
+                            Name = "Box" + i
+                        };
+                        box.Click += new EventHandler(Paint);
+                        box.MouseEnter += new EventHandler(PaintDown);
+                        box.MouseDown += new MouseEventHandler(Down);
+                        box.MouseUp += new MouseEventHandler(Up);
+                        box.MouseMove += new MouseEventHandler(PaintMove);
+                        box.Size = new Size(s, s);
+                        box.BackColor = color;
+                        box.BorderStyle = BorderStyle.FixedSingle;
+                        box.Location = new Point(x, y);
+                        ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add(box); }));
+                        x += s;
+                    }
+                    stream.Close();
+                    px = pixelCount;
+                    PixelSizeLabel.Invoke(new System.Action(() => { PixelSizeLabel.Text = px.ToString(); }));
+                }
+                catch(Exception ex)
+                {
+                    Debug.WriteLine(ex.ToString());
+                    MessageBox.Show(GetLang("Error_Invalid_File"), GetLang("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            });
+            threads.Add(thread);
+            MainForm.threads.Add(thread);
+            thread.Start();
+        }
+
         public void Open(String fileName)
         {
             Thread thread = new Thread(() =>
@@ -115,13 +238,11 @@ namespace PixelPaint
 
                 if (File.Exists(fileName))
                 {
-                    this.Invoke(new System.Action(() => { this.Text = fileName.Substring(fileName.LastIndexOf("\\") + 1).Replace(".pxp", ""); }));
-                    StreamReader reader = new StreamReader(File.OpenRead(fileName));
-                    String content = reader.ReadToEnd();
+                    Invoke(new System.Action(() => { Text = fileName.Substring(fileName.LastIndexOf("\\") + 1); }));
+                    String content = File.ReadAllText(fileName);
                     string[] result = content.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    Properties.Settings.Default.PixelSize = int.Parse(result[0].Split('=')[1]);
-                    Properties.Settings.Default.Save();
-                    this.Invoke(new System.Action(() => { this.Text = fileName; }));
+                    Settings.Default.PixelSize = int.Parse(result[0].Split('=')[1]);
+                    Settings.Default.Save();
                     ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
                     px = 0;
                     int x = 0;
@@ -134,11 +255,15 @@ namespace PixelPaint
                             PictureBox box = new PictureBox();
                             box.Name = "Box" + px;
                             box.Click += new EventHandler(Paint);
+                            box.MouseEnter += new EventHandler(PaintDown);
+                            box.MouseDown += new MouseEventHandler(Down);
+                            box.MouseUp += new MouseEventHandler(Up);
+                            box.MouseMove += new MouseEventHandler(PaintMove);
                             box.Size = new Size(s, s);
                             box.BackColor = Color.White;
                             box.BorderStyle = BorderStyle.FixedSingle;
                             box.Location = new Point(x, y);
-                            ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add((Control)box); }));
+                            ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add(box); }));
 
                             x += s;
                             px += 1;
@@ -149,7 +274,7 @@ namespace PixelPaint
                     }
 
                     this.fileName = fileName;
-                    this.name = fileName.Substring(fileName.LastIndexOf("\\") + 1).Replace(".pxp", "");
+                    name = fileName.Substring(fileName.LastIndexOf("\\") + 1);
                     result = result.Where(val => val != result[0]).ToArray();
                     int i = 0;
                     while (i < result.Length)
@@ -166,13 +291,19 @@ namespace PixelPaint
             this.threads.Add(thread);
             MainForm.threads.Add(thread);
             thread.Start();
-
-
         }
 
         private new void Paint(object sender, EventArgs e)
         {
             PictureBox box = (PictureBox)sender;
+            lastAction = new Action(box, box.BackColor, color);
+            box.BackColor = color;
+        }
+
+        private void PaintDown(object sender, EventArgs e)
+        {
+            PictureBox box = (PictureBox)sender;
+            if (!mouseDown) return;
             lastAction = new Action(box, box.BackColor, color);
             box.BackColor = color;
         }
@@ -248,7 +379,7 @@ namespace PixelPaint
 
         private void ChangePixelSize(object sender, EventArgs e)
         {
-            String value = Properties.Settings.Default.PixelSize.ToString();
+            String value = Settings.Default.PixelSize.ToString();
             if (InputBox("PixelPaint | " + GetLang("Pixel_Size_Menu_Item"), GetLang("Image_Reset_Warning"), ref value).Equals(DialogResult.OK))
             {
                 if (int.Parse(value) < 5)
@@ -257,8 +388,8 @@ namespace PixelPaint
                     return;
                 }
 
-                Properties.Settings.Default.PixelSize = int.Parse(value);
-                Properties.Settings.Default.Save();
+                Settings.Default.PixelSize = int.Parse(value);
+                Settings.Default.Save();
 
                 this.s = int.Parse(value);
 
@@ -277,6 +408,10 @@ namespace PixelPaint
                             PictureBox box = new PictureBox();
                             box.Name = "Box" + px;
                             box.Click += new EventHandler(Paint);
+                            box.MouseEnter += new EventHandler(PaintDown);
+                            box.MouseDown += new MouseEventHandler(Down);
+                            box.MouseUp += new MouseEventHandler(Up);
+                            box.MouseMove += new MouseEventHandler(PaintMove);
                             box.Size = new Size(s, s);
                             box.BackColor = Color.White;
                             box.BorderStyle = BorderStyle.FixedSingle;
@@ -318,6 +453,10 @@ namespace PixelPaint
                             PictureBox box = new PictureBox();
                             box.Name = "Box" + px;
                             box.Click += new EventHandler(Paint);
+                            box.MouseEnter += new EventHandler(PaintDown);
+                            box.MouseDown += new MouseEventHandler(Down);
+                            box.MouseUp += new MouseEventHandler(Up);
+                            box.MouseMove += new MouseEventHandler(PaintMove);
                             box.Size = new Size(s, s);
                             box.BackColor = Color.White;
                             box.BorderStyle = BorderStyle.FixedSingle;
@@ -381,14 +520,19 @@ namespace PixelPaint
             return dialogResult;
         }
 
-        private void SaveEvent(object sender, EventArgs e)
+        private void NewSaveEvent(object sender, EventArgs e)
         {
             if (File.Exists(fileName))
             {
                 try
                 {
                     File.Delete(fileName);
-                    Save(fileName);
+                    var extension = Path.GetExtension(fileName);
+                    if (extension == ".bxp")
+                    {
+                        NewSave(fileName);
+                    }
+                    else SaveOld(fileName);
                 }
                 catch (Exception error)
                 {
@@ -397,42 +541,39 @@ namespace PixelPaint
             }
             else
             {
-                SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "PixelPaintFile(*.pxp)|*.pxp";
-                saveFileDialog.Title = "PixelPaint | " + MainForm.GetLang("Picture") + " " + MainForm.GetLang("Save_Menu_Item");
-                saveFileDialog.FileName = "";
-                saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                if (saveFileDialog.ShowDialog().Equals(DialogResult.OK))
-                {
-                    fileName = saveFileDialog.FileName;
-                    name = saveFileDialog.FileName.Substring(saveFileDialog.FileName.LastIndexOf("\\") + 1).Replace(".pxp", "");
-                    Save(saveFileDialog.FileName);
-                }
+                SaveAs(sender, e);
             }
         }
 
-        private void SaveUnder(object sender, EventArgs e)
+        private void SaveAs(object sender, EventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "PixelPaintFile(*.pxp)|*.pxp";
+            saveFileDialog.Filter = "BetterPixelPaintFile(*.bxp)|*.bxp|PixelPaintFile(*.pxp)|*.pxp";
             saveFileDialog.Title = "PixelPaint | " + MainForm.GetLang("Picture") + " " + MainForm.GetLang("Save_Menu_Item");
             saveFileDialog.FileName = "";
             saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (saveFileDialog.ShowDialog().Equals(DialogResult.OK))
             {
                 fileName = saveFileDialog.FileName;
-                name = saveFileDialog.FileName.Substring(saveFileDialog.FileName.LastIndexOf("\\") + 1).Replace(".pxp", "");
-                Save(saveFileDialog.FileName);
+                name = saveFileDialog.FileName.Substring(saveFileDialog.FileName.LastIndexOf("\\") + 1).Replace(saveFileDialog.FileName.Split('.').Last(), "");
+                Text = fileName;
+                if (saveFileDialog.FilterIndex == 1)
+                    NewSave(fileName);
+                else
+                    SaveOld(fileName);
             }
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.Filter = "PixelPaintDateien(*.pxp)|*.pxp";
+            openFileDialog.Filter = "BetterPixelPaintFile(*.bxp)|*.bxp|PixelPaintFile(*.pxp)|*.pxp";
 
             if (openFileDialog.ShowDialog().Equals(DialogResult.OK))
             {
+                if(openFileDialog.FilterIndex == 1)
+                    NewOpen(openFileDialog.FileName);
+                else
                 Open(openFileDialog.FileName);
             }
         }
@@ -566,6 +707,43 @@ namespace PixelPaint
                     thread.Abort();
                 }
             }
+        }
+
+        private void Up(object sender, MouseEventArgs e)
+        {
+            mouseDown = false;
+        }
+
+        private void Down(object sender, MouseEventArgs e)
+        {
+            mouseDown = true;
+        }
+
+        private void PaintMove(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                foreach(Control control in ImagePanel.Controls)
+                {
+                    if (control != null)
+                    {
+                        if(control is PictureBox box)
+                        {
+                            Point pt = box.PointToClient(Cursor.Position);
+                            Rectangle rc = box.ClientRectangle;
+                            if (rc.Contains(pt))
+                            {
+                                PaintDown(box, e);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void EditForm_Activated(object sender, EventArgs e)
+        {
+            BringToFront();
         }
     }
 }
