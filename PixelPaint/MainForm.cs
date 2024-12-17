@@ -12,6 +12,7 @@ namespace PixelPaint
     {
         public static List<Thread> threads = new List<Thread>();
 
+        public static readonly string[] supportedLanguages = { "en", "de", "fr" };
         public static CultureInfo CultureInfo = Settings.Default.Language;
         public static ResourceManager langManager;
 
@@ -22,7 +23,31 @@ namespace PixelPaint
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            this.WindowState = FormWindowState.Maximized;
+            if (Settings.Default.FirstRun)
+            {
+                Settings.Default.FirstRun = false;
+                Settings.Default.Save();
+                LanguageDialog dialog;
+                var userLang = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
+                if (Array.IndexOf(supportedLanguages, userLang) != -1)
+                {
+                    dialog = new LanguageDialog(CultureInfo.GetCultureInfo(userLang));
+                }
+                else
+                {
+                    dialog = new LanguageDialog(CultureInfo);
+                }
+
+                if (dialog.ShowDialog().Equals(DialogResult.Cancel))
+                {
+                    return;
+                }
+
+                CultureInfo = dialog.LanguageIndex;
+                Settings.Default.Language = CultureInfo;
+                Settings.Default.Save();
+            }
+            WindowState = FormWindowState.Maximized;
             langManager = new ResourceManager("PixelPaint.Languages.Res", typeof(MainForm).Assembly);
             FileToolStripMenuItem.Text = GetLang("File_Menu");
             NewToolStripMenuItem.Text = GetLang("New_Menu_Item");
@@ -37,41 +62,41 @@ namespace PixelPaint
 
         private void NewToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Thread thread = new Thread(CreateNew);
-            MainForm.threads.Add(thread);
+            var thread = new Thread(CreateNew);
+            threads.Add(thread);
             thread.Start();
         }
 
         private void CreateNew()
         {
-            EditForm main = new EditForm();
+            var main = new EditForm();
             main.TopLevel = false;
-            this.Invoke(new Action(() => { panel1.Controls.Add(main); }));
-            this.Invoke(new Action(() => { main.Show(); }));
+            Invoke(new Action(() => { panel1.Controls.Add(main); }));
+            Invoke(new Action(() => { main.Show(); }));
             main.NewProjekt();
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
+            var openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "BetterPixelPaintFile(*.bxp)|*.bxp|PixelPaintFile(*.pxp)|*.pxp";
 
             if (openFileDialog.ShowDialog().Equals(DialogResult.OK))
             {
                 var newFormat = openFileDialog.FilterIndex == 1;
-                Thread thread = new Thread(() => { Open(openFileDialog.FileName, newFormat); });
-                MainForm.threads.Add(thread);
+                var thread = new Thread(() => { Open(openFileDialog.FileName, newFormat); });
+                threads.Add(thread);
                 thread.Start();
             }
         }
 
         private void Open(string fileName, bool newFormat)
         {
-            EditForm main = new EditForm();
+            var main = new EditForm();
             main.TopLevel = false;
-            this.Invoke(new Action(() => { panel1.Controls.Add(main); }));
-            this.Invoke(new Action(() => { panel1.Controls.Add(main); }));
-            this.Invoke(new Action(() => { main.Show(); }));
+            Invoke(new Action(() => { panel1.Controls.Add(main); }));
+            Invoke(new Action(() => { panel1.Controls.Add(main); }));
+            Invoke(new Action(() => { main.Show(); }));
             if (newFormat) main.NewOpen(fileName);
             else
             main.Open(fileName);
@@ -79,7 +104,7 @@ namespace PixelPaint
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            foreach (Thread thread in threads)
+            foreach (var thread in threads)
             {
                 if (thread.IsAlive)
                 {
@@ -91,8 +116,7 @@ namespace PixelPaint
 
         private void LanguageToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            LanguageDialog dialog = new LanguageDialog();
-            dialog.LanguageIndex = CultureInfo;
+            var dialog = new LanguageDialog(CultureInfo);
             if (dialog.ShowDialog().Equals(DialogResult.Cancel)){
                 return;
             }

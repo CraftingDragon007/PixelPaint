@@ -58,10 +58,6 @@ namespace PixelPaint
             // LanguageComboBox
             // 
             this.LanguageComboBox.FormattingEnabled = true;
-            this.LanguageComboBox.Items.AddRange(new object[] {
-            "English (English)",
-            "German (Deutsch)",
-            "French (Français)"});
             this.LanguageComboBox.Location = new System.Drawing.Point(12, 17);
             this.LanguageComboBox.Name = "LanguageComboBox";
             this.LanguageComboBox.Size = new System.Drawing.Size(273, 21);
@@ -71,7 +67,6 @@ namespace PixelPaint
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.CancelButton = this.CancelButton;
             this.ClientSize = new System.Drawing.Size(297, 79);
             this.ControlBox = false;
             this.Controls.Add(this.LanguageComboBox);
@@ -80,14 +75,13 @@ namespace PixelPaint
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "LanguageDialog";
             this.Text = "Please select Your Language";
-            this.Load += new System.EventHandler(this.LanguageDialog_Load);
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Button CancelButton;
+        private new System.Windows.Forms.Button CancelButton;
         private System.Windows.Forms.Button OKButton;
         private System.Windows.Forms.ComboBox LanguageComboBox;
     }

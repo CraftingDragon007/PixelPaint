@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PixelPaint.Properties;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -13,41 +14,35 @@ namespace PixelPaint
 {
     public partial class LanguageDialog : Form
     {
-        public LanguageDialog()
+        public LanguageDialog(CultureInfo defaultLanguage = null)
         {
-            LanguageIndex = CultureInfo.CreateSpecificCulture("en");
             InitializeComponent();
-        }
-
-        private void LanguageDialog_Load(object sender, EventArgs e)
-        {
+            foreach (var lang in MainForm.supportedLanguages)
+                LanguageComboBox.Items.Add(CultureInfo.GetCultureInfo(lang).NativeName);                
             
+            if (LanguageIndex == null)
+                LanguageIndex = Settings.Default.Language;
+
+            if (defaultLanguage != null)
+                LanguageIndex = defaultLanguage;
+
+            // Set the selected language and text of the combobox
+            LanguageComboBox.Text = LanguageIndex.NativeName;
+            LanguageComboBox.SelectedIndex = Array.IndexOf(MainForm.supportedLanguages, LanguageIndex.Name);
         }
 
         private void CancelButton_Click(object sender, EventArgs e)
         {
-            this.DialogResult = DialogResult.Cancel;
-            this.Close();
+            DialogResult = DialogResult.Cancel;
+            Close();
         }
 
         private void OKButton_Click(object sender, EventArgs e)
         {
-            switch (LanguageComboBox.SelectedIndex)
-            {
-                case 0:
-                    LanguageIndex = CultureInfo.CreateSpecificCulture("en");
-                    break;
-                case 1:
-                    LanguageIndex = CultureInfo.CreateSpecificCulture("de");
-                    break;
-                case 2:
-                    LanguageIndex = CultureInfo.CreateSpecificCulture("fr");
-                    break;
-                default:
-                    return;
-            }
-            this.DialogResult = DialogResult.OK;
-            this.Close();
+            LanguageIndex = CultureInfo.GetCultureInfo(MainForm.supportedLanguages[LanguageComboBox.SelectedIndex]);
+
+            DialogResult = DialogResult.OK;
+            Close();
         }
 
         public CultureInfo LanguageIndex { get; set; }        

@@ -17,11 +17,11 @@ namespace PixelPaint
         private int px = 0;
         private Color color = Color.White;
         private Color customColor = Color.White;
-        private String name = null;
-        private String fileName = null;
+        private string name = null;
+        private string fileName = null;
         private Action lastAction = Action.nothing;
         private Size minimumSize = Size.Empty;
-        private int s;
+        private int PixelSize;
         private bool mouseDown = false;
 
         private readonly List<Thread> threads = new List<Thread>();
@@ -31,17 +31,17 @@ namespace PixelPaint
             InitializeComponent();
         }
 
-        public void ChangeTitle(String text)
+        public void ChangeTitle(string text)
         {
-            this.Invoke(new System.Action(() => { this.Text = text; }));
+            Invoke(new System.Action(() => { Text = text; }));
             return;
         }
 
         private void Main_Load(object sender, EventArgs e)
         {
-            this.minimumSize = this.Size;
-            this.Text = "Menu";
-            s = Settings.Default.PixelSize;
+            minimumSize = Size;
+            Text = "Menu";
+            PixelSize = Settings.Default.PixelSize;
             FileToolStripMenuItem.Text = GetLang("File_Menu");
             OpenToolStripMenuItem.Text = GetLang("Open_Menu_Item");
             SaveToolStripMenuItem.Text = GetLang("Save_Menu_Item");
@@ -64,19 +64,19 @@ namespace PixelPaint
 
         public void NewProjekt()
         {
-            Thread thread = new Thread(() =>
+            var thread = new Thread(() =>
             {
-                this.Invoke(new System.Action(() => { this.Text = MainForm.GetLang("Unnamed_Title"); }));
+                Invoke(new System.Action(() => { Text = GetLang("Unnamed_Title"); }));
                 ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
                 px = 0;
-                int x = 0;
-                int y = 0;
-                int s = this.s;
+                var x = 0;
+                var y = 0;
+                var s = PixelSize;
                 while (y + s <= ImagePanel.Height)
                 {
                     while (x + s <= ImagePanel.Width)
                     {
-                        PictureBox box = new PictureBox();
+                        var box = new PictureBox();
                         box.Name = "Box" + px;
                         box.Text = box.Name;
                         box.Click += new EventHandler(Paint);
@@ -98,18 +98,18 @@ namespace PixelPaint
                     y += s;
                 }
             });
-            this.threads.Add(thread);
+            threads.Add(thread);
             MainForm.threads.Add(thread);
             thread.Start();
         }
 
-        private void SaveOld(String fileName)
+        private void SaveOld(string fileName)
         {
-            StreamWriter writer = new StreamWriter(File.OpenWrite(fileName));
+            var writer = new StreamWriter(File.OpenWrite(fileName));
             writer.WriteLine("Size=" + Settings.Default.PixelSize);
             foreach (Control control in ImagePanel.Controls)
             {
-                PictureBox box = (PictureBox)control;
+                var box = (PictureBox)control;
                 writer.WriteLine(box.BackColor.R + "|" + box.BackColor.G + "|" + box.BackColor.B);
             }
             writer.Flush();
@@ -133,10 +133,10 @@ namespace PixelPaint
             stream.Write(fileSize, 0, fileSize.Length);
             stream.WriteByte(77);
             stream.Flush();
-            
+
             foreach (var control in ImagePanel.Controls)
             {
-                PictureBox box = (PictureBox)control;
+                var box = (PictureBox)control;
                 var color = box.BackColor;
                 stream.WriteByte(color.R);
                 stream.WriteByte(color.G);
@@ -174,7 +174,7 @@ namespace PixelPaint
                     stream.Read(pixelSize, 0, pixelSize.Length);
                     Settings.Default.PixelSize = BitConverter.ToInt32(pixelSize, 0);
                     Settings.Default.Save();
-                    s = Settings.Default.PixelSize;
+                    PixelSize = Settings.Default.PixelSize;
                     stream.ReadByte();
                     var fileSizeLength = stream.ReadByte();
                     stream.ReadByte();
@@ -183,22 +183,22 @@ namespace PixelPaint
                     var fileSizeAsInt = BitConverter.ToInt32(fileSize, 0);
                     stream.ReadByte();
                     var pixelCount = fileSizeAsInt / 3;
-                    if(pixelCount  <= 0)
+                    if (pixelCount <= 0)
                     {
                         throw new FormatException();
                     }
                     ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
-                    int x = 0; int y = 0;
-                    for (int i = 0; i < pixelCount; i++)
+                    var x = 0; var y = 0;
+                    for (var i = 0; i < pixelCount; i++)
                     {
                         var r = stream.ReadByte();
                         var g = stream.ReadByte();
                         var b = stream.ReadByte();
                         var color = Color.FromArgb(r, g, b);
-                        if (x + s >= ImagePanel.Width)
+                        if (x + PixelSize >= ImagePanel.Width)
                         {
                             x = 0;
-                            y += s;
+                            y += PixelSize;
                         }
                         var box = new PictureBox
                         {
@@ -209,18 +209,18 @@ namespace PixelPaint
                         box.MouseDown += new MouseEventHandler(Down);
                         box.MouseUp += new MouseEventHandler(Up);
                         box.MouseMove += new MouseEventHandler(PaintMove);
-                        box.Size = new Size(s, s);
+                        box.Size = new Size(PixelSize, PixelSize);
                         box.BackColor = color;
                         box.BorderStyle = BorderStyle.FixedSingle;
                         box.Location = new Point(x, y);
                         ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add(box); }));
-                        x += s;
+                        x += PixelSize;
                     }
                     stream.Close();
                     px = pixelCount;
                     PixelSizeLabel.Invoke(new System.Action(() => { PixelSizeLabel.Text = px.ToString(); }));
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Debug.WriteLine(ex.ToString());
                     MessageBox.Show(GetLang("Error_Invalid_File"), GetLang("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -231,28 +231,28 @@ namespace PixelPaint
             thread.Start();
         }
 
-        public void Open(String fileName)
+        public void Open(string fileName)
         {
-            Thread thread = new Thread(() =>
+            var thread = new Thread(() =>
             {
 
                 if (File.Exists(fileName))
                 {
                     Invoke(new System.Action(() => { Text = fileName.Substring(fileName.LastIndexOf("\\") + 1); }));
-                    String content = File.ReadAllText(fileName);
-                    string[] result = content.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    var content = File.ReadAllText(fileName);
+                    var result = content.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                     Settings.Default.PixelSize = int.Parse(result[0].Split('=')[1]);
                     Settings.Default.Save();
                     ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
                     px = 0;
-                    int x = 0;
-                    int y = 0;
-                    int s = int.Parse(result[0].Split('=')[1]);
+                    var x = 0;
+                    var y = 0;
+                    var s = int.Parse(result[0].Split('=')[1]);
                     while (y + s <= ImagePanel.Height)
                     {
                         while (x + s <= ImagePanel.Width)
                         {
-                            PictureBox box = new PictureBox();
+                            var box = new PictureBox();
                             box.Name = "Box" + px;
                             box.Click += new EventHandler(Paint);
                             box.MouseEnter += new EventHandler(PaintDown);
@@ -276,33 +276,33 @@ namespace PixelPaint
                     this.fileName = fileName;
                     name = fileName.Substring(fileName.LastIndexOf("\\") + 1);
                     result = result.Where(val => val != result[0]).ToArray();
-                    int i = 0;
+                    var i = 0;
                     while (i < result.Length)
                     {
-                        PictureBox box = (PictureBox)ImagePanel.Controls[i];
+                        var box = (PictureBox)ImagePanel.Controls[i];
                         string[] vs = result[i].Split('|');
                         Color color = Color.FromArgb(int.Parse(vs[0]), int.Parse(vs[1]), int.Parse(vs[2]));
-                        this.Invoke(new System.Action(() => { box.BackColor = color; }));
+                        Invoke(new System.Action(() => { box.BackColor = color; }));
                         i++;
                     }
                 }
                 else MessageBox.Show(GetLang("Path_Not_Exists"), GetLang("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             });
-            this.threads.Add(thread);
+            threads.Add(thread);
             MainForm.threads.Add(thread);
             thread.Start();
         }
 
         private new void Paint(object sender, EventArgs e)
         {
-            PictureBox box = (PictureBox)sender;
+            var box = (PictureBox)sender;
             lastAction = new Action(box, box.BackColor, color);
             box.BackColor = color;
         }
 
         private void PaintDown(object sender, EventArgs e)
         {
-            PictureBox box = (PictureBox)sender;
+            var box = (PictureBox)sender;
             if (!mouseDown) return;
             lastAction = new Action(box, box.BackColor, color);
             box.BackColor = color;
@@ -325,32 +325,32 @@ namespace PixelPaint
 
         private void Green_CheckedChanged(object sender, EventArgs e)
         {
-            this.color = Color.Lime;
+            color = Color.Lime;
         }
 
         private void Yellow_CheckedChanged(object sender, EventArgs e)
         {
-            this.color = Color.Yellow;
+            color = Color.Yellow;
         }
 
         private void Blue_CheckedChanged(object sender, EventArgs e)
         {
-            this.color = Color.Blue;
+            color = Color.Blue;
         }
 
         private void Red_CheckedChanged(object sender, EventArgs e)
         {
-            this.color = Color.Red;
+            color = Color.Red;
         }
 
         private void White_CheckedChanged(object sender, EventArgs e)
         {
-            this.color = Color.White;
+            color = Color.White;
         }
 
         private void Black_CheckedChanged(object sender, EventArgs e)
         {
-            this.color = Color.Black;
+            color = Color.Black;
         }
 
         private void Other_CheckedChanged(object sender, EventArgs e)
@@ -360,16 +360,16 @@ namespace PixelPaint
 
         private void BrowseColorsButton_Click(object sender, EventArgs e)
         {
-            ColorDialog dialog = new ColorDialog();
+            var dialog = new ColorDialog();
             dialog.Color = Color.Black;
             if (dialog.ShowDialog().Equals(DialogResult.OK))
             {
                 customColor = dialog.Color;
                 Other.BackColor = dialog.Color;
-                Color d = dialog.Color;
-                Color c = Color.FromArgb(255 - d.R, 255 -
-                  d.G, 255 - d.B);
-                Other.ForeColor = c;
+                var newCustomColor = dialog.Color;
+                var invertedCustomColor = Color.FromArgb(255 - newCustomColor.R, 255 -
+                  newCustomColor.G, 255 - newCustomColor.B);
+                Other.ForeColor = invertedCustomColor;
                 if (Other.Checked)
                 {
                     color = dialog.Color;
@@ -379,7 +379,7 @@ namespace PixelPaint
 
         private void ChangePixelSize(object sender, EventArgs e)
         {
-            String value = Settings.Default.PixelSize.ToString();
+            var value = Settings.Default.PixelSize.ToString();
             if (InputBox("PixelPaint | " + GetLang("Pixel_Size_Menu_Item"), GetLang("Image_Reset_Warning"), ref value).Equals(DialogResult.OK))
             {
                 if (int.Parse(value) < 5)
@@ -391,21 +391,21 @@ namespace PixelPaint
                 Settings.Default.PixelSize = int.Parse(value);
                 Settings.Default.Save();
 
-                this.s = int.Parse(value);
+                PixelSize = int.Parse(value);
 
-                Thread thread = new Thread(() =>
+                var thread = new Thread(() =>
                 {
-                    this.Invoke(new System.Action(() => { this.Text = MainForm.GetLang("Unnamed_Title"); }));
+                    Invoke(new System.Action(() => { Text = MainForm.GetLang("Unnamed_Title"); }));
                     ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
                     px = 0;
-                    int x = 0;
-                    int y = 0;
-                    int s = this.s;
+                    var x = 0;
+                    var y = 0;
+                    var s = PixelSize;
                     while (y + s <= ImagePanel.Height)
                     {
                         while (x + s <= ImagePanel.Width)
                         {
-                            PictureBox box = new PictureBox();
+                            var box = new PictureBox();
                             box.Name = "Box" + px;
                             box.Click += new EventHandler(Paint);
                             box.MouseEnter += new EventHandler(PaintDown);
@@ -426,11 +426,11 @@ namespace PixelPaint
                         y += s;
                     }
                 });
-                this.threads.Add(thread);
+                threads.Add(thread);
                 MainForm.threads.Add(thread);
                 thread.Start();
 
-                this.fileName = "";
+                fileName = "";
             }
         }
 
@@ -438,43 +438,43 @@ namespace PixelPaint
         {
             if (MessageBox.Show(GetLang("Image_Reset_Warning"), "PixelPaint | " + GetLang("Reset_Confirmation"), MessageBoxButtons.OKCancel, MessageBoxIcon.Warning).Equals(DialogResult.OK))
             {
-                Thread thread = new Thread(() =>
-                {
-                    this.Invoke(new System.Action(() => { this.Text = MainForm.GetLang("Unnamed_Title"); }));
-                    ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
-                    px = 0;
-                    int x = 0;
-                    int y = 0;
-                    int s = this.s;
-                    while (y + s <= ImagePanel.Height)
-                    {
-                        while (x + s <= ImagePanel.Width)
-                        {
-                            PictureBox box = new PictureBox();
-                            box.Name = "Box" + px;
-                            box.Click += new EventHandler(Paint);
-                            box.MouseEnter += new EventHandler(PaintDown);
-                            box.MouseDown += new MouseEventHandler(Down);
-                            box.MouseUp += new MouseEventHandler(Up);
-                            box.MouseMove += new MouseEventHandler(PaintMove);
-                            box.Size = new Size(s, s);
-                            box.BackColor = Color.White;
-                            box.BorderStyle = BorderStyle.FixedSingle;
-                            box.Location = new Point(x, y);
-                            ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add((Control)box); }));
+                var thread = new Thread(() =>
+                 {
+                     Invoke(new System.Action(() => { Text = GetLang("Unnamed_Title"); }));
+                     ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
+                     px = 0;
+                     var x = 0;
+                     var y = 0;
+                     var s = PixelSize;
+                     while (y + s <= ImagePanel.Height)
+                     {
+                         while (x + s <= ImagePanel.Width)
+                         {
+                             PictureBox box = new PictureBox();
+                             box.Name = "Box" + px;
+                             box.Click += new EventHandler(Paint);
+                             box.MouseEnter += new EventHandler(PaintDown);
+                             box.MouseDown += new MouseEventHandler(Down);
+                             box.MouseUp += new MouseEventHandler(Up);
+                             box.MouseMove += new MouseEventHandler(PaintMove);
+                             box.Size = new Size(s, s);
+                             box.BackColor = Color.White;
+                             box.BorderStyle = BorderStyle.FixedSingle;
+                             box.Location = new Point(x, y);
+                             ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add((Control)box); }));
 
-                            x += s;
-                            px += 1;
-                            PixelSizeLabel.Invoke(new System.Action(() => { PixelSizeLabel.Text = px.ToString(); }));
-                        }
-                        x = 0;
-                        y += s;
-                    }
-                });
-                this.threads.Add(thread);
+                             x += s;
+                             px += 1;
+                             PixelSizeLabel.Invoke(new System.Action(() => { PixelSizeLabel.Text = px.ToString(); }));
+                         }
+                         x = 0;
+                         y += s;
+                     }
+                 });
+                threads.Add(thread);
                 MainForm.threads.Add(thread);
                 thread.Start();
-                this.fileName = "";
+                fileName = "";
             }
         }
 
@@ -571,10 +571,10 @@ namespace PixelPaint
 
             if (openFileDialog.ShowDialog().Equals(DialogResult.OK))
             {
-                if(openFileDialog.FilterIndex == 1)
+                if (openFileDialog.FilterIndex == 1)
                     NewOpen(openFileDialog.FileName);
                 else
-                Open(openFileDialog.FileName);
+                    Open(openFileDialog.FileName);
             }
         }
 
@@ -590,15 +590,15 @@ namespace PixelPaint
                 this.box = box;
                 this.bevore = bevore;
                 this.after = after;
-                this.isNothing = false;
+                isNothing = false;
             }
 
             private Action()
             {
-                this.isNothing = true;
-                this.box = null;
-                this.bevore = Color.White;
-                this.after = Color.White;
+                isNothing = true;
+                box = null;
+                bevore = Color.White;
+                after = Color.White;
             }
 
             public Color Undo()
@@ -638,7 +638,7 @@ namespace PixelPaint
             Redo();
         }
 
-        private void Export(String filename)
+        private void Export(string filename)
         {
             //TODO: Make this working!
 
@@ -676,25 +676,25 @@ namespace PixelPaint
 
         private void Main_Resize(object sender, EventArgs e)
         {
-            if (this.Size.Width * this.Size.Height < this.minimumSize.Width * this.minimumSize.Height)
+            if (Size.Width * Size.Height < minimumSize.Width * minimumSize.Height)
             {
-                this.Size = this.minimumSize;
+                Size = minimumSize;
             }
         }
 
         private void Main_ResizeBegin(object sender, EventArgs e)
         {
-            if (this.Size.Width * this.Size.Height < this.minimumSize.Width * this.minimumSize.Height)
+            if (Size.Width * Size.Height < minimumSize.Width * minimumSize.Height)
             {
-                this.FormBorderStyle = FormBorderStyle.FixedSingle;
+                FormBorderStyle = FormBorderStyle.FixedSingle;
             }
         }
 
         private void Main_ResizeEnd(object sender, EventArgs e)
         {
-            if (this.Size.Width * this.Size.Height < this.minimumSize.Width * this.minimumSize.Height)
+            if (Size.Width * Size.Height < minimumSize.Width * minimumSize.Height)
             {
-                this.FormBorderStyle = FormBorderStyle.Sizable;
+                FormBorderStyle = FormBorderStyle.Sizable;
             }
         }
 
@@ -723,11 +723,11 @@ namespace PixelPaint
         {
             if (e.Button == MouseButtons.Left)
             {
-                foreach(Control control in ImagePanel.Controls)
+                foreach (Control control in ImagePanel.Controls)
                 {
                     if (control != null)
                     {
-                        if(control is PictureBox box)
+                        if (control is PictureBox box)
                         {
                             Point pt = box.PointToClient(Cursor.Position);
                             Rectangle rc = box.ClientRectangle;
