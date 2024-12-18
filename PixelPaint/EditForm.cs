@@ -586,7 +586,7 @@ namespace PixelPaint
             }
         }
 
-        private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OpenFileEvent(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "BetterPixelPaintFile(*.bxp)|*.bxp|PixelPaintFile(*.pxp)|*.pxp";
@@ -678,28 +678,23 @@ namespace PixelPaint
 
         private void Export(string filename)
         {
-            //TODO: Make this working!
-
-            //Point position = this.Location;
-            Point point = ImagePanel.Location;
-            //this.FormBorderStyle = FormBorderStyle.None;
-            //ImagePanel.Location = new Point(0, 0);
-            //this.Location = new Point(0, 0);
-            Rectangle rectangle = ImagePanel.Bounds;
-            using (Bitmap bitmap = new Bitmap(rectangle.Width, rectangle.Height))
+            int width = PixelSize * (ImagePanel.Width / PixelSize) + 2;
+            int height = PixelSize * (ImagePanel.Height / PixelSize) + 2;
+            using (Bitmap originalBitmap = new Bitmap(width, height))
             {
-                using (Graphics g = Graphics.FromImage(bitmap))
+                ImagePanel.DrawToBitmap(originalBitmap, new Rectangle(0, 0, width, height));
+                using (Bitmap croppedBitmap = new Bitmap(width - 1, height - 1))
                 {
-                    g.CopyFromScreen(PointToScreen(point), Point.Empty, rectangle.Size);
+                    using (Graphics g = Graphics.FromImage(croppedBitmap))
+                    {
+                        g.DrawImage(originalBitmap, new Rectangle(0, 0, width - 1, height - 1), new Rectangle(1, 1, width - 1, height - 1), GraphicsUnit.Pixel);
+                    }
+                    croppedBitmap.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
                 }
-                //this.Location = position;
-                //ImagePanel.Location = point;
-                //this.FormBorderStyle = FormBorderStyle.Sizable;
-                bitmap.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
             }
         }
 
-        private void ExportToolStripMenuItem_Click(object sender, EventArgs e)
+        private void ExportToFileEvent(object sender, EventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "PNG " + MainForm.GetLang("Picture") + "(*.png)|*.png";
@@ -794,6 +789,26 @@ namespace PixelPaint
             if (keyData == (Keys.Control | Keys.Y))
             {
                 Redo();
+                return true;
+            }
+            if (keyData == (Keys.Control | Keys.S))
+            {
+                NewSaveEvent(this, new EventArgs());
+                return true;
+            }
+            if (keyData == (Keys.Control | Keys.O))
+            {
+                OpenFileEvent(this, new EventArgs());
+                return true;
+            }
+            if (keyData == (Keys.Control | Keys.E))
+            {
+                ExportToFileEvent(this, new EventArgs());
+                return true;
+            }
+            if (keyData == (Keys.Control | Keys.S | Keys.Shift))
+            {
+                SaveAs(this, new EventArgs());
                 return true;
             }
             return base.ProcessCmdKey(ref msg, keyData);

@@ -238,7 +238,7 @@ namespace PixelPaint
             this.OpenToolStripMenuItem.Name = "OpenToolStripMenuItem";
             this.OpenToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.OpenToolStripMenuItem.Text = "Öffnen";
-            this.OpenToolStripMenuItem.Click += new System.EventHandler(this.OpenToolStripMenuItem_Click);
+            this.OpenToolStripMenuItem.Click += new System.EventHandler(this.OpenFileEvent);
             // 
             // SaveToolStripMenuItem
             // 
@@ -273,7 +273,7 @@ namespace PixelPaint
             this.ExportToolStripMenuItem.Name = "ExportToolStripMenuItem";
             this.ExportToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.ExportToolStripMenuItem.Text = "Exportieren...";
-            this.ExportToolStripMenuItem.Click += new System.EventHandler(this.ExportToolStripMenuItem_Click);
+            this.ExportToolStripMenuItem.Click += new System.EventHandler(this.ExportToFileEvent);
             // 
             // EditToolStripMenuItem
             // 
