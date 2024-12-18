@@ -19,7 +19,9 @@ namespace PixelPaint
         private Color customColor = Color.White;
         private string name = null;
         private string fileName = null;
-        private Action lastAction = Action.nothing;
+        private Action lastAction = Action.nothing; 
+        private Stack<Action> undoStack = new Stack<Action>();
+        private Stack<Action> redoStack = new Stack<Action>();
         private Size minimumSize = Size.Empty;
         private int PixelSize;
         private bool mouseDown = false;
@@ -296,26 +298,46 @@ namespace PixelPaint
         private new void Paint(object sender, EventArgs e)
         {
             var box = (PictureBox)sender;
-            lastAction = new Action(box, box.BackColor, color);
-            box.BackColor = color;
+            var action = new Action(box, box.BackColor, color);
+            if (undoStack.Count == 0 || !undoStack.Peek().Equals(action))
+            {
+                action.Execute();
+                undoStack.Push(action);
+                redoStack.Clear();
+            }
         }
 
         private void PaintDown(object sender, EventArgs e)
         {
             var box = (PictureBox)sender;
             if (!mouseDown) return;
-            lastAction = new Action(box, box.BackColor, color);
-            box.BackColor = color;
+            var action = new Action(box, box.BackColor, color);
+            if (undoStack.Count == 0 || !undoStack.Peek().Equals(action))
+            {
+                action.Execute();
+                undoStack.Push(action);
+                redoStack.Clear();
+            }
         }
 
         private void Undo()
         {
-            lastAction.Undo();
+            if (undoStack.Count > 0)
+            {
+                var action = undoStack.Pop();
+                action.Undo();
+                redoStack.Push(action);
+            }
         }
 
         private void Redo()
         {
-            lastAction.Redo();
+            if (redoStack.Count > 0)
+            {
+                var action = redoStack.Pop();
+                action.Redo();
+                undoStack.Push(action);
+            }
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -581,14 +603,15 @@ namespace PixelPaint
         class Action
         {
             private readonly PictureBox box;
-            private readonly Color bevore;
+            private readonly Color before;
             private readonly Color after;
             private readonly bool isNothing;
             public static Action nothing = new Action();
-            public Action(PictureBox box, Color bevore, Color after)
+
+            public Action(PictureBox box, Color before, Color after)
             {
                 this.box = box;
-                this.bevore = bevore;
+                this.before = before;
                 this.after = after;
                 isNothing = false;
             }
@@ -597,34 +620,49 @@ namespace PixelPaint
             {
                 isNothing = true;
                 box = null;
-                bevore = Color.White;
+                before = Color.White;
                 after = Color.White;
             }
 
-            public Color Undo()
+            public void Execute()
             {
                 if (!isNothing)
                 {
-                    return box.BackColor = bevore;
-                }
-                else
-                {
-                    return box.BackColor;
+                    box.BackColor = after;
                 }
             }
 
-            public Color Redo()
+            public void Undo()
             {
                 if (!isNothing)
                 {
-                    return box.BackColor = after;
-                }
-                else
-                {
-                    return box.BackColor;
+                    box.BackColor = before;
                 }
             }
+
+            public void Redo()
+            {
+                if (!isNothing)
+                {
+                    box.BackColor = after;
+                }
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is Action other)
+                {
+                    return box == other.box && before == other.before && after == other.after;
+                }
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return box.GetHashCode() ^ before.GetHashCode() ^ after.GetHashCode();
+            }
         }
+
 
 
 
@@ -744,6 +782,21 @@ namespace PixelPaint
         private void EditForm_Activated(object sender, EventArgs e)
         {
             BringToFront();
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == (Keys.Control | Keys.Z))
+            {
+                Undo();
+                return true;
+            }
+            if (keyData == (Keys.Control | Keys.Y))
+            {
+                Redo();
+                return true;
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
     }
 }
