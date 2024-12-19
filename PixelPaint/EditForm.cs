@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using static PixelPaint.MainForm;
+using System.Xml.Linq;
+using Svg;
 
 namespace PixelPaint
 {
@@ -19,7 +21,7 @@ namespace PixelPaint
         private Color customColor = Color.White;
         private string name = null;
         private string fileName = null;
-        private Action lastAction = Action.nothing; 
+        private Action lastAction = Action.nothing;
         private Stack<Action> undoStack = new Stack<Action>();
         private Stack<Action> redoStack = new Stack<Action>();
         private Size minimumSize = Size.Empty;
@@ -676,34 +678,91 @@ namespace PixelPaint
             Redo();
         }
 
-        private void Export(string filename)
+        public void ExportAsSvg(string filename, bool pixelsWithBorders)
         {
-            int width = PixelSize * (ImagePanel.Width / PixelSize) + 2;
-            int height = PixelSize * (ImagePanel.Height / PixelSize) + 2;
-            using (Bitmap originalBitmap = new Bitmap(width, height))
+            int width = PixelSize * (ImagePanel.Width / PixelSize);
+            int height = PixelSize * (ImagePanel.Height / PixelSize);
+
+            var svg = GenerateSvg(pixelsWithBorders, width, height);
+
+            var xml = svg.GetXML();
+            File.WriteAllText(filename, xml);
+        }
+
+        public SvgDocument GenerateSvg(bool pixelsWithBorders, int width, int height)
+        {
+
+            var svgDocument = new SvgDocument
             {
-                ImagePanel.DrawToBitmap(originalBitmap, new Rectangle(0, 0, width, height));
-                using (Bitmap croppedBitmap = new Bitmap(width - 1, height - 1))
+                Width = new SvgUnit(width),
+                Height = new SvgUnit(height),
+                ViewBox = new SvgViewBox(0, 0, width, height)
+            };
+
+            foreach (Control control in ImagePanel.Controls)
+            {
+                var box = (PictureBox)control;
+                var x = box.Location.X;
+                var y = box.Location.Y;
+                var color = box.BackColor;
+
+                var rect = new SvgRectangle
                 {
-                    using (Graphics g = Graphics.FromImage(croppedBitmap))
-                    {
-                        g.DrawImage(originalBitmap, new Rectangle(0, 0, width - 1, height - 1), new Rectangle(1, 1, width - 1, height - 1), GraphicsUnit.Pixel);
-                    }
-                    croppedBitmap.Save(filename, System.Drawing.Imaging.ImageFormat.Png);
+                    X = new SvgUnit(x),
+                    Y = new SvgUnit(y),
+                    Width = new SvgUnit(PixelSize),
+                    Height = new SvgUnit(PixelSize),
+                    Fill = new SvgColourServer(color)
+                };
+
+                if (pixelsWithBorders)
+                {
+                    rect.Stroke = new SvgColourServer(Color.Black);
+                    rect.StrokeWidth = 1;
                 }
+
+                svgDocument.Children.Add(rect);
             }
+
+            return svgDocument;
+        }
+
+        public void ExportPngFromSvg(string fileName, bool pixelsWithBorders)
+        {
+            int width = PixelSize * (ImagePanel.Width / PixelSize);
+            int height = PixelSize * (ImagePanel.Height / PixelSize);
+            var svg = GenerateSvg(pixelsWithBorders, width, height);
+
+            // Create a bitmap to render the SVG
+            var bitmap = new Bitmap(width, height);
+            svg.Draw(bitmap);
+
+            // Save the bitmap as a PNG file
+            bitmap.Save(fileName, System.Drawing.Imaging.ImageFormat.Png);
         }
 
         private void ExportToFileEvent(object sender, EventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "PNG " + MainForm.GetLang("Picture") + "(*.png)|*.png";
-            saveFileDialog.Title = "PixelPaint | " + MainForm.GetLang("Picture") + " " + MainForm.GetLang("Save_Menu_Item");
+            saveFileDialog.Filter = "PNG " + GetLang("Picture") + "(*.png)|*.png|SVG " + GetLang("Picture") + "(*.svg)|*.svg";
+            saveFileDialog.Title = "PixelPaint | " + GetLang("Picture") + " " + GetLang("Save_Menu_Item");
             saveFileDialog.FileName = "";
             saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
             if (saveFileDialog.ShowDialog().Equals(DialogResult.OK))
             {
-                Export(saveFileDialog.FileName);
+                // ask the user with a popup if they want to have pixel borders
+                var result = MessageBox.Show(GetLang("Export_Border_Msg"), GetLang("Export_Border_Title"), MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                var bordered = result == DialogResult.Yes;
+
+                if (saveFileDialog.FilterIndex == 1)
+                {
+                    ExportPngFromSvg(saveFileDialog.FileName, bordered);
+                }
+                else if (saveFileDialog.FilterIndex == 2)
+                {
+                    ExportAsSvg(saveFileDialog.FileName, bordered);
+                }
             }
         }
 
@@ -815,3 +874,4 @@ namespace PixelPaint
         }
     }
 }
+

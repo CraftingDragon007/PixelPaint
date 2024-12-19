@@ -132,6 +132,12 @@
   <data name="Error_Invalid_File" xml:space="preserve">
     <value>Fichier inconnu ou corrompu</value>
   </data>
+  <data name="Export_Border_Msg" xml:space="preserve">
+    <value>Voulez-vous des bordures autour de chaque pixel?</value>
+  </data>
+  <data name="Export_Border_Title" xml:space="preserve">
+    <value>Option de Bordure de Pixel</value>
+  </data>
   <data name="Export_Menu_Item" xml:space="preserve">
     <value>Exporter</value>
   </data>

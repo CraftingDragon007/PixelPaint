@@ -132,6 +132,12 @@
   <data name="Error_Invalid_File" xml:space="preserve">
     <value>Ungültige oder beschädigte Datei</value>
   </data>
+  <data name="Export_Border_Msg" xml:space="preserve">
+    <value>Möchten Sie, dass jeder Pixel umrandet wird?</value>
+  </data>
+  <data name="Export_Border_Title" xml:space="preserve">
+    <value>Pixel Umrandung</value>
+  </data>
   <data name="Export_Menu_Item" xml:space="preserve">
     <value>Exportieren</value>
   </data>
