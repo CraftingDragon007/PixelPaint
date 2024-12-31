@@ -66,7 +66,25 @@ namespace PixelPaint
             PixelLabel.Text = GetLang("Pixels_Label");
         }
 
-        public void NewProjekt()
+        private PictureBox CreatePictureBox(int x, int y, int index, Color color)
+        {
+            var box = new PictureBox
+            {
+                Name = "Box" + index,
+                Size = new Size(PixelSize, PixelSize),
+                BackColor = color,
+                BorderStyle = BorderStyle.FixedSingle,
+                Location = new Point(x, y)
+            };
+            box.Click += new EventHandler(Paint);
+            box.MouseEnter += new EventHandler(PaintDown);
+            box.MouseDown += new MouseEventHandler(Down);
+            box.MouseUp += new MouseEventHandler(Up);
+            box.MouseMove += new MouseEventHandler(PaintMove);
+            return box;
+        }
+
+        public void NewProject()
         {
             var thread = new Thread(() =>
             {
@@ -80,18 +98,7 @@ namespace PixelPaint
                 {
                     while (x + s <= ImagePanel.Width)
                     {
-                        var box = new PictureBox();
-                        box.Name = "Box" + px;
-                        box.Text = box.Name;
-                        box.Click += new EventHandler(Paint);
-                        box.MouseEnter += new EventHandler(PaintDown);
-                        box.MouseDown += new MouseEventHandler(Down);
-                        box.MouseUp += new MouseEventHandler(Up);
-                        box.MouseMove += new MouseEventHandler(PaintMove);
-                        box.Size = new Size(s, s);
-                        box.BackColor = Color.White;
-                        box.BorderStyle = BorderStyle.FixedSingle;
-                        box.Location = new Point(x, y);
+                        var box = CreatePictureBox(x, y, px, Color.White);
                         ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add(box); }));
 
                         x += s;
@@ -204,19 +211,7 @@ namespace PixelPaint
                             x = 0;
                             y += PixelSize;
                         }
-                        var box = new PictureBox
-                        {
-                            Name = "Box" + i
-                        };
-                        box.Click += new EventHandler(Paint);
-                        box.MouseEnter += new EventHandler(PaintDown);
-                        box.MouseDown += new MouseEventHandler(Down);
-                        box.MouseUp += new MouseEventHandler(Up);
-                        box.MouseMove += new MouseEventHandler(PaintMove);
-                        box.Size = new Size(PixelSize, PixelSize);
-                        box.BackColor = color;
-                        box.BorderStyle = BorderStyle.FixedSingle;
-                        box.Location = new Point(x, y);
+                        var box = CreatePictureBox(x, y, i, color);
                         ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add(box); }));
                         x += PixelSize;
                     }
@@ -256,17 +251,7 @@ namespace PixelPaint
                     {
                         while (x + s <= ImagePanel.Width)
                         {
-                            var box = new PictureBox();
-                            box.Name = "Box" + px;
-                            box.Click += new EventHandler(Paint);
-                            box.MouseEnter += new EventHandler(PaintDown);
-                            box.MouseDown += new MouseEventHandler(Down);
-                            box.MouseUp += new MouseEventHandler(Up);
-                            box.MouseMove += new MouseEventHandler(PaintMove);
-                            box.Size = new Size(s, s);
-                            box.BackColor = Color.White;
-                            box.BorderStyle = BorderStyle.FixedSingle;
-                            box.Location = new Point(x, y);
+                            var box = CreatePictureBox(x, y, px, Color.White);
                             ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add(box); }));
 
                             x += s;
@@ -340,11 +325,6 @@ namespace PixelPaint
                 action.Redo();
                 undoStack.Push(action);
             }
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            NewProjekt();
         }
 
         private void Green_CheckedChanged(object sender, EventArgs e)
@@ -429,18 +409,8 @@ namespace PixelPaint
                     {
                         while (x + s <= ImagePanel.Width)
                         {
-                            var box = new PictureBox();
-                            box.Name = "Box" + px;
-                            box.Click += new EventHandler(Paint);
-                            box.MouseEnter += new EventHandler(PaintDown);
-                            box.MouseDown += new MouseEventHandler(Down);
-                            box.MouseUp += new MouseEventHandler(Up);
-                            box.MouseMove += new MouseEventHandler(PaintMove);
-                            box.Size = new Size(s, s);
-                            box.BackColor = Color.White;
-                            box.BorderStyle = BorderStyle.FixedSingle;
-                            box.Location = new Point(x, y);
-                            ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add((Control)box); }));
+                            var box = CreatePictureBox(x, y, px, Color.White);
+                            ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Add(box); }));
 
                             x += s;
                             px += 1;

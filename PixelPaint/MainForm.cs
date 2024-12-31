@@ -73,7 +73,7 @@ namespace PixelPaint
             main.TopLevel = false;
             Invoke(new Action(() => { panel1.Controls.Add(main); }));
             Invoke(new Action(() => { main.Show(); }));
-            main.NewProjekt();
+            main.NewProject();
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
