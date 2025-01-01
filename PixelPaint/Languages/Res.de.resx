@@ -199,7 +199,13 @@
     <value>Rückgängig</value>
   </data>
   <data name="Unnamed_Title" xml:space="preserve">
-    <value>Unbenannt*</value>
+    <value>Unbenannt</value>
+  </data>
+  <data name="Unsaved_Changes_Msg" xml:space="preserve">
+    <value>Sie haben ungespeicherte Änderungen. Möchten Sie diese speichern?</value>
+  </data>
+  <data name="Unsaved_Changes_Title" xml:space="preserve">
+    <value>Ungespeicherte Änderungen</value>
   </data>
   <data name="White_Label" xml:space="preserve">
     <value>Weiss</value>

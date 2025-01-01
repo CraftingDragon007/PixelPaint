@@ -9,7 +9,6 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using static PixelPaint.MainForm;
-using System.Xml.Linq;
 using Svg;
 
 namespace PixelPaint
@@ -19,14 +18,18 @@ namespace PixelPaint
         private int px = 0;
         private Color color = Color.White;
         private Color customColor = Color.White;
-        private string name = null;
+        private string projectName = null;
         private string fileName = null;
-        private Action lastAction = Action.nothing;
         private Stack<Action> undoStack = new Stack<Action>();
         private Stack<Action> redoStack = new Stack<Action>();
         private Size minimumSize = Size.Empty;
         private int PixelSize;
         private bool mouseDown = false;
+
+        private bool _savedInternal;
+
+        // trigger UpdateCurrentFileDisplayName every time Saved changes
+        private bool Saved { get => _savedInternal; set { _savedInternal = value; UpdateCurrentFileDisplayName(); } }
 
         private readonly List<Thread> threads = new List<Thread>();
 
@@ -35,16 +38,26 @@ namespace PixelPaint
             InitializeComponent();
         }
 
-        public void ChangeTitle(string text)
+        public void UpdateCurrentFileDisplayName(string name = null)
         {
-            Invoke(new System.Action(() => { Text = text; }));
-            return;
+            if (name == null && projectName == null) return;
+            if (name == null) name = projectName;
+            else projectName = name;
+            string title;
+            if (Saved) title = name;
+            else title = name + "*";
+            Invoke(new System.Action(() => { Text = title; }));
         }
 
-        private void Main_Load(object sender, EventArgs e)
+        public void UpdateSavedState(bool state, string name = null)
+        {
+            if (name != null) projectName = name;
+            Saved = state;
+        }
+
+        private void EditForm_Load(object sender, EventArgs e)
         {
             minimumSize = Size;
-            Text = "Menu";
             PixelSize = Settings.Default.PixelSize;
             FileToolStripMenuItem.Text = GetLang("File_Menu");
             OpenToolStripMenuItem.Text = GetLang("Open_Menu_Item");
@@ -80,7 +93,7 @@ namespace PixelPaint
             box.MouseEnter += new EventHandler(PaintDown);
             box.MouseDown += new MouseEventHandler(Down);
             box.MouseUp += new MouseEventHandler(Up);
-            box.MouseMove += new MouseEventHandler(PaintMove);
+            box.MouseMove += new MouseEventHandler(EditForm_MouseMove);
             return box;
         }
 
@@ -88,7 +101,7 @@ namespace PixelPaint
         {
             var thread = new Thread(() =>
             {
-                Invoke(new System.Action(() => { Text = GetLang("Unnamed_Title"); }));
+                UpdateSavedState(false, GetLang("Unnamed_Title"));
                 ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
                 px = 0;
                 var x = 0;
@@ -110,7 +123,7 @@ namespace PixelPaint
                 }
             });
             threads.Add(thread);
-            MainForm.threads.Add(thread);
+            MainForm.Threads.Add(thread);
             thread.Start();
         }
 
@@ -125,6 +138,8 @@ namespace PixelPaint
             }
             writer.Flush();
             writer.Close();
+
+            UpdateSavedState(true, fileName.Substring(fileName.LastIndexOf("\\") + 1));
         }
 
         private void NewSave(string fileName)
@@ -155,6 +170,8 @@ namespace PixelPaint
             }
             stream.Flush();
             stream.Close();
+
+            UpdateSavedState(true, fileName.Substring(fileName.LastIndexOf("\\") + 1));
         }
 
         public void NewOpen(string fileName)
@@ -170,7 +187,6 @@ namespace PixelPaint
                 try
                 {
                     var name = fileName.Substring(fileName.LastIndexOf('\\') + 1);
-                    Invoke(new System.Action(() => { Text = name; }));
                     var stream = File.OpenRead(fileName);
                     var header = Encoding.ASCII.GetBytes("PixelPaint");
                     var headerBuffer = new byte[header.Length];
@@ -218,6 +234,9 @@ namespace PixelPaint
                     stream.Close();
                     px = pixelCount;
                     PixelSizeLabel.Invoke(new System.Action(() => { PixelSizeLabel.Text = px.ToString(); }));
+
+                    this.fileName = fileName;
+                    UpdateSavedState(true, name);
                 }
                 catch (Exception ex)
                 {
@@ -226,7 +245,7 @@ namespace PixelPaint
                 }
             });
             threads.Add(thread);
-            MainForm.threads.Add(thread);
+            MainForm.Threads.Add(thread);
             thread.Start();
         }
 
@@ -237,7 +256,6 @@ namespace PixelPaint
 
                 if (File.Exists(fileName))
                 {
-                    Invoke(new System.Action(() => { Text = fileName.Substring(fileName.LastIndexOf("\\") + 1); }));
                     var content = File.ReadAllText(fileName);
                     var result = content.Split(new string[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                     Settings.Default.PixelSize = int.Parse(result[0].Split('=')[1]);
@@ -263,7 +281,8 @@ namespace PixelPaint
                     }
 
                     this.fileName = fileName;
-                    name = fileName.Substring(fileName.LastIndexOf("\\") + 1);
+                    UpdateSavedState(true, fileName.Substring(fileName.LastIndexOf("\\") + 1));
+
                     result = result.Where(val => val != result[0]).ToArray();
                     var i = 0;
                     while (i < result.Length)
@@ -278,7 +297,7 @@ namespace PixelPaint
                 else MessageBox.Show(GetLang("Path_Not_Exists"), GetLang("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             });
             threads.Add(thread);
-            MainForm.threads.Add(thread);
+            MainForm.Threads.Add(thread);
             thread.Start();
         }
 
@@ -291,6 +310,7 @@ namespace PixelPaint
                 action.Execute();
                 undoStack.Push(action);
                 redoStack.Clear();
+                UpdateSavedState(false);
             }
         }
 
@@ -304,6 +324,7 @@ namespace PixelPaint
                 action.Execute();
                 undoStack.Push(action);
                 redoStack.Clear();
+                UpdateSavedState(false);
             }
         }
 
@@ -313,7 +334,8 @@ namespace PixelPaint
             {
                 var action = undoStack.Pop();
                 action.Undo();
-                redoStack.Push(action);
+                redoStack.Push(action); 
+                UpdateSavedState(false);
             }
         }
 
@@ -324,6 +346,7 @@ namespace PixelPaint
                 var action = redoStack.Pop();
                 action.Redo();
                 undoStack.Push(action);
+                UpdateSavedState(false);
             }
         }
 
@@ -399,7 +422,7 @@ namespace PixelPaint
 
                 var thread = new Thread(() =>
                 {
-                    Invoke(new System.Action(() => { Text = MainForm.GetLang("Unnamed_Title"); }));
+                    Invoke(new System.Action(() => { Text = GetLang("Unnamed_Title"); }));
                     ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
                     px = 0;
                     var x = 0;
@@ -421,7 +444,7 @@ namespace PixelPaint
                     }
                 });
                 threads.Add(thread);
-                MainForm.threads.Add(thread);
+                MainForm.Threads.Add(thread);
                 thread.Start();
 
                 fileName = "";
@@ -434,7 +457,7 @@ namespace PixelPaint
             {
                 var thread = new Thread(() =>
                  {
-                     Invoke(new System.Action(() => { Text = GetLang("Unnamed_Title"); }));
+                     UpdateSavedState(false, GetLang("Unnamed_Title"));
                      ImagePanel.Invoke(new System.Action(() => { ImagePanel.Controls.Clear(); }));
                      px = 0;
                      var x = 0;
@@ -450,7 +473,7 @@ namespace PixelPaint
                              box.MouseEnter += new EventHandler(PaintDown);
                              box.MouseDown += new MouseEventHandler(Down);
                              box.MouseUp += new MouseEventHandler(Up);
-                             box.MouseMove += new MouseEventHandler(PaintMove);
+                             box.MouseMove += new MouseEventHandler(EditForm_MouseMove);
                              box.Size = new Size(s, s);
                              box.BackColor = Color.White;
                              box.BorderStyle = BorderStyle.FixedSingle;
@@ -466,9 +489,9 @@ namespace PixelPaint
                      }
                  });
                 threads.Add(thread);
-                MainForm.threads.Add(thread);
+                MainForm.Threads.Add(thread);
                 thread.Start();
-                fileName = "";
+                fileName = "";                
             }
         }
 
@@ -548,11 +571,8 @@ namespace PixelPaint
             saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (saveFileDialog.ShowDialog().Equals(DialogResult.OK))
             {
-                fileName = saveFileDialog.FileName;
-                name = saveFileDialog.FileName.Substring(saveFileDialog.FileName.LastIndexOf("\\") + 1).Replace(saveFileDialog.FileName.Split('.').Last(), "");
-                Text = fileName;
                 if (saveFileDialog.FilterIndex == 1)
-                    NewSave(fileName);
+                    NewSave(saveFileDialog.FileName);
                 else
                     SaveOld(fileName);
             }
@@ -736,7 +756,7 @@ namespace PixelPaint
             }
         }
 
-        private void Main_Resize(object sender, EventArgs e)
+        private void EditForm_Resize(object sender, EventArgs e)
         {
             if (Size.Width * Size.Height < minimumSize.Width * minimumSize.Height)
             {
@@ -744,7 +764,7 @@ namespace PixelPaint
             }
         }
 
-        private void Main_ResizeBegin(object sender, EventArgs e)
+        private void EditForm_ResizeBegin(object sender, EventArgs e)
         {
             if (Size.Width * Size.Height < minimumSize.Width * minimumSize.Height)
             {
@@ -752,7 +772,7 @@ namespace PixelPaint
             }
         }
 
-        private void Main_ResizeEnd(object sender, EventArgs e)
+        private void EditForm_ResizeEnd(object sender, EventArgs e)
         {
             if (Size.Width * Size.Height < minimumSize.Width * minimumSize.Height)
             {
@@ -760,8 +780,33 @@ namespace PixelPaint
             }
         }
 
-        private void Main_FormClosing(object sender, FormClosingEventArgs e)
+        private void EditForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (e.CloseReason != CloseReason.UserClosing)
+            {
+                return;
+            }
+            if (ProcessFormClosing(sender, e))
+            RemoveChild(this);
+        }
+
+        public bool ProcessFormClosing(object sender, FormClosingEventArgs e)
+        {
+            // check for unsaved changes 
+            if (!Saved)
+            {
+                var result = MessageBox.Show(GetLang("Unsaved_Changes_Msg"), GetLang("Unsaved_Changes_Title"), MessageBoxButtons.YesNoCancel, MessageBoxIcon.Warning);
+                if (result == DialogResult.Yes)
+                {
+                    NewSaveEvent(sender, e);
+                }
+                else if (result == DialogResult.Cancel)
+                {
+                    e.Cancel = true;
+                    return false;
+                }
+            }
+
             foreach (Thread thread in threads)
             {
                 if (thread.IsAlive)
@@ -769,6 +814,8 @@ namespace PixelPaint
                     thread.Abort();
                 }
             }
+
+            return true;
         }
 
         private void Up(object sender, MouseEventArgs e)
@@ -781,8 +828,9 @@ namespace PixelPaint
             mouseDown = true;
         }
 
-        private void PaintMove(object sender, MouseEventArgs e)
+        private void EditForm_MouseMove(object sender, MouseEventArgs e)
         {
+            BringToFront();
             if (e.Button == MouseButtons.Left)
             {
                 foreach (Control control in ImagePanel.Controls)

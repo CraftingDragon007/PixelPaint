@@ -17,7 +17,7 @@ namespace PixelPaint
         public LanguageDialog(CultureInfo defaultLanguage = null)
         {
             InitializeComponent();
-            foreach (var lang in MainForm.supportedLanguages)
+            foreach (var lang in MainForm.SupportedLanguages)
                 LanguageComboBox.Items.Add(CultureInfo.GetCultureInfo(lang).NativeName);                
             
             if (LanguageIndex == null)
@@ -28,7 +28,7 @@ namespace PixelPaint
 
             // Set the selected language and text of the combobox
             LanguageComboBox.Text = LanguageIndex.NativeName;
-            LanguageComboBox.SelectedIndex = Array.IndexOf(MainForm.supportedLanguages, LanguageIndex.Name);
+            LanguageComboBox.SelectedIndex = Array.IndexOf(MainForm.SupportedLanguages, LanguageIndex.Name);
         }
 
         private void CancelButton_Click(object sender, EventArgs e)
@@ -39,7 +39,7 @@ namespace PixelPaint
 
         private void OKButton_Click(object sender, EventArgs e)
         {
-            LanguageIndex = CultureInfo.GetCultureInfo(MainForm.supportedLanguages[LanguageComboBox.SelectedIndex]);
+            LanguageIndex = CultureInfo.GetCultureInfo(MainForm.SupportedLanguages[LanguageComboBox.SelectedIndex]);
 
             DialogResult = DialogResult.OK;
             Close();

@@ -321,12 +321,12 @@ namespace PixelPaint
             this.ShowIcon = false;
             this.Text = "Starting...";
             this.Activated += new System.EventHandler(this.EditForm_Activated);
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Main_FormClosing);
-            this.Load += new System.EventHandler(this.Main_Load);
-            this.ResizeBegin += new System.EventHandler(this.Main_ResizeBegin);
-            this.ResizeEnd += new System.EventHandler(this.Main_ResizeEnd);
-            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.PaintMove);
-            this.Resize += new System.EventHandler(this.Main_Resize);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.EditForm_FormClosing);
+            this.Load += new System.EventHandler(this.EditForm_Load);
+            this.ResizeBegin += new System.EventHandler(this.EditForm_ResizeBegin);
+            this.ResizeEnd += new System.EventHandler(this.EditForm_ResizeEnd);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.EditForm_MouseMove);
+            this.Resize += new System.EventHandler(this.EditForm_Resize);
             this.MenuStrip.ResumeLayout(false);
             this.MenuStrip.PerformLayout();
             this.ResumeLayout(false);

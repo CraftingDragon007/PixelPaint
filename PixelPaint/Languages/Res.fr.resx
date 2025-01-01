@@ -199,7 +199,13 @@
     <value>Annuler</value>
   </data>
   <data name="Unnamed_Title" xml:space="preserve">
-    <value>Anonyme*</value>
+    <value>Anonyme</value>
+  </data>
+  <data name="Unsaved_Changes_Msg" xml:space="preserve">
+    <value>Vous avez des modifications non enregistrées. Voulez-vous les enregistrer ?</value>
+  </data>
+  <data name="Unsaved_Changes_Title" xml:space="preserve">
+    <value>Modifications non enregistrées</value>
   </data>
   <data name="White_Label" xml:space="preserve">
     <value>Blanc</value>

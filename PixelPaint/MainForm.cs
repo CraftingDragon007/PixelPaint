@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Resources;
 using System.Threading;
 using System.Windows.Forms;
@@ -10,11 +11,13 @@ namespace PixelPaint
 {
     public partial class MainForm : Form
     {
-        public static List<Thread> threads = new List<Thread>();
+        public static List<Thread> Threads = new List<Thread>();
 
-        public static readonly string[] supportedLanguages = { "en", "de", "fr" };
+        public static readonly string[] SupportedLanguages = { "en", "de", "fr" };
         public static CultureInfo CultureInfo = Settings.Default.Language;
-        public static ResourceManager langManager;
+        public static ResourceManager LangManager;
+
+        private static List<EditForm> Editors = new List<EditForm>();
 
         public MainForm()
         {
@@ -29,7 +32,7 @@ namespace PixelPaint
                 Settings.Default.Save();
                 LanguageDialog dialog;
                 var userLang = CultureInfo.InstalledUICulture.TwoLetterISOLanguageName;
-                if (Array.IndexOf(supportedLanguages, userLang) != -1)
+                if (Array.IndexOf(SupportedLanguages, userLang) != -1)
                 {
                     dialog = new LanguageDialog(CultureInfo.GetCultureInfo(userLang));
                 }
@@ -48,7 +51,7 @@ namespace PixelPaint
                 Settings.Default.Save();
             }
             WindowState = FormWindowState.Maximized;
-            langManager = new ResourceManager("PixelPaint.Languages.Res", typeof(MainForm).Assembly);
+            LangManager = new ResourceManager("PixelPaint.Languages.Res", typeof(MainForm).Assembly);
             FileToolStripMenuItem.Text = GetLang("File_Menu");
             NewToolStripMenuItem.Text = GetLang("New_Menu_Item");
             OpenToolStripMenuItem.Text = GetLang("Open_Menu_Item");
@@ -57,23 +60,28 @@ namespace PixelPaint
 
         public static string GetLang(string key)
         {
-            return langManager.GetString(key, CultureInfo);
+            return LangManager.GetString(key, CultureInfo);
         }
 
         private void NewToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var thread = new Thread(CreateNew);
-            threads.Add(thread);
+            Threads.Add(thread);
             thread.Start();
         }
 
         private void CreateNew()
         {
-            var main = new EditForm();
-            main.TopLevel = false;
-            Invoke(new Action(() => { panel1.Controls.Add(main); }));
-            Invoke(new Action(() => { main.Show(); }));
-            main.NewProject();
+            var editor = new EditForm();
+            editor.TopLevel = false;
+            Invoke(new Action(() =>
+            {
+                panel1.Controls.Add(editor);
+                editor.Show();
+                editor.BringToFront();
+            }));
+            editor.NewProject();
+            Editors.Add(editor);
         }
 
         private void OpenToolStripMenuItem_Click(object sender, EventArgs e)
@@ -85,26 +93,48 @@ namespace PixelPaint
             {
                 var newFormat = openFileDialog.FilterIndex == 1;
                 var thread = new Thread(() => { Open(openFileDialog.FileName, newFormat); });
-                threads.Add(thread);
+                Threads.Add(thread);
                 thread.Start();
             }
         }
 
         private void Open(string fileName, bool newFormat)
         {
-            var main = new EditForm();
-            main.TopLevel = false;
-            Invoke(new Action(() => { panel1.Controls.Add(main); }));
-            Invoke(new Action(() => { panel1.Controls.Add(main); }));
-            Invoke(new Action(() => { main.Show(); }));
-            if (newFormat) main.NewOpen(fileName);
+            var editor = new EditForm();
+            editor.TopLevel = false;
+            Invoke(new Action(() =>
+            {
+                panel1.Controls.Add(editor);
+                editor.Show();
+                editor.BringToFront();
+            }));
+            if (newFormat) editor.NewOpen(fileName);
             else
-            main.Open(fileName);
+                editor.Open(fileName);
+            Editors.Add(editor);
         }
 
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            foreach (var thread in threads)
+            if (e.CloseReason == CloseReason.ApplicationExitCall)
+            {
+                return;
+            }
+            foreach (var child in Editors.ToList())
+            {
+                if (!child.ProcessFormClosing(sender, new FormClosingEventArgs(CloseReason.FormOwnerClosing, false)))
+                {
+                    e.Cancel = true;
+                    return;
+                }
+                else
+                {
+                    panel1.Controls.Remove(child);
+                    Editors.Remove(child);
+                }
+            }
+
+            foreach (var thread in Threads)
             {
                 if (thread.IsAlive)
                 {
@@ -117,16 +147,22 @@ namespace PixelPaint
         private void LanguageToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var dialog = new LanguageDialog(CultureInfo);
-            if (dialog.ShowDialog().Equals(DialogResult.Cancel)){
+            if (dialog.ShowDialog().Equals(DialogResult.Cancel))
+            {
                 return;
             }
             CultureInfo = dialog.LanguageIndex;
             Settings.Default.Language = CultureInfo;
             Settings.Default.Save();
-            if(MessageBox.Show("To Change the Language the Application needs to restart.\nDo You want to Restart now?", "Restart Needed", MessageBoxButtons.YesNo, MessageBoxIcon.Question).Equals(DialogResult.Yes))
+            if (MessageBox.Show("To Change the Language the Application needs to restart.\nDo You want to Restart now?", "Restart Needed", MessageBoxButtons.YesNo, MessageBoxIcon.Question).Equals(DialogResult.Yes))
             {
                 Application.Restart();
             }
+        }
+
+        internal static void RemoveChild(EditForm editForm)
+        {
+            Editors.Remove(editForm);
         }
     }
 }
