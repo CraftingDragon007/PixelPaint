@@ -123,7 +123,7 @@ namespace PixelPaint
                 }
             });
             threads.Add(thread);
-            MainForm.Threads.Add(thread);
+            Threads.Add(thread);
             thread.Start();
         }
 
@@ -245,7 +245,7 @@ namespace PixelPaint
                 }
             });
             threads.Add(thread);
-            MainForm.Threads.Add(thread);
+            Threads.Add(thread);
             thread.Start();
         }
 
@@ -297,7 +297,7 @@ namespace PixelPaint
                 else MessageBox.Show(GetLang("Path_Not_Exists"), GetLang("Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             });
             threads.Add(thread);
-            MainForm.Threads.Add(thread);
+            Threads.Add(thread);
             thread.Start();
         }
 
@@ -444,7 +444,7 @@ namespace PixelPaint
                     }
                 });
                 threads.Add(thread);
-                MainForm.Threads.Add(thread);
+                Threads.Add(thread);
                 thread.Start();
 
                 fileName = "";
@@ -489,7 +489,7 @@ namespace PixelPaint
                      }
                  });
                 threads.Add(thread);
-                MainForm.Threads.Add(thread);
+                Threads.Add(thread);
                 thread.Start();
                 fileName = "";                
             }
@@ -566,7 +566,7 @@ namespace PixelPaint
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "BetterPixelPaintFile(*.bxp)|*.bxp|PixelPaintFile(*.pxp)|*.pxp";
-            saveFileDialog.Title = "PixelPaint | " + MainForm.GetLang("Picture") + " " + MainForm.GetLang("Save_Menu_Item");
+            saveFileDialog.Title = "PixelPaint | " + GetLang("Picture") + " " + GetLang("Save_Menu_Item");
             saveFileDialog.FileName = "";
             saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             if (saveFileDialog.ShowDialog().Equals(DialogResult.OK))
