@@ -574,7 +574,7 @@ namespace PixelPaint
                 if (saveFileDialog.FilterIndex == 1)
                     NewSave(saveFileDialog.FileName);
                 else
-                    SaveOld(fileName);
+                    SaveOld(saveFileDialog.FileName);
             }
         }
 
