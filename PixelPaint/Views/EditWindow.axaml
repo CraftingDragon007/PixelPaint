@@ -1,0 +1,143 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="816" d:DesignHeight="538"
+        x:Class="PixelPaint.Views.EditWindow"
+        Title="EditWindow"
+        Width="816" Height="538"
+        Icon="/Assets/Icon.ico">
+
+    <Window.Styles>
+        <Style Selector="Button">
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+
+        <!-- Common RadioButton style to preserve original color when hovered -->
+        <Style Selector="RadioButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{Binding $parent[RadioButton].Background} " />
+            <Setter Property="Foreground" Value="{Binding $parent[RadioButton].Foreground} " />
+            <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
+        </Style>
+
+        <Style Selector="RadioButton">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <!-- Radio button indicator -->
+                        <Panel Width="16" Height="16">
+                            <Rectangle Name="OuterEllipse"
+                                       Width="14" Height="14"
+                                       Stroke="Gray"
+                                       StrokeThickness="1"
+                                       Fill="Transparent" />
+                            <Rectangle Name="InnerEllipse"
+                                       Width="8" Height="8"
+                                       Margin="3"
+                                       IsVisible="{Binding IsChecked, RelativeSource={RelativeSource TemplatedParent}}"
+                                       Fill="{DynamicResource SystemAccentColor}" />
+                        </Panel>
+
+                        <!-- Background container -->
+                        <Grid Margin="2 0">
+                            <Rectangle Name="bgRect"
+                                       Width="64"
+                                       Height="24"
+                                       RadiusX="3"
+                                       RadiusY="3"
+                                       Fill="{TemplateBinding Background}" />
+                            <ContentPresenter Name="PART_ContentPresenter"
+                                              Content="{TemplateBinding Content}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              Foreground="{TemplateBinding Foreground}" />
+                        </Grid>
+                    </StackPanel>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <Style Selector="Window">
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+    </Window.Styles>
+
+    <Grid>
+        <DockPanel>
+            <!-- Menu -->
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="Datei">
+                    <MenuItem Name="OpenMenuItem" Header="Öffnen" />
+                    <MenuItem Name="SaveMenuItem" Header="Speichern" />
+                    <MenuItem Name="SaveAsMenuItem" Header="Speichern unter..." />
+                    <MenuItem Name="ResetMenuItem" Header="Reset" />
+                    <MenuItem Name="PixelSizeMenuItem" Header="Pixel Grösse.." />
+                    <MenuItem Name="ExportMenuItem" Header="Exportieren..." />
+                </MenuItem>
+                <MenuItem Header="Bearbeiten">
+                    <MenuItem Name="UndoMenuItem" Header="Rückgängig" />
+                    <MenuItem Name="RedoMenuItem" Header="Wiederholen" />
+                </MenuItem>
+            </Menu>
+
+            <!-- Main Content -->
+            <Grid>
+                <StackPanel Margin="12,31,0,0" Width="85" HorizontalAlignment="Left">
+                    <!-- Color Radio Buttons -->
+                    <RadioButton GroupName="ColorSelector" Content="Schwarz"
+                                 IsChecked="True"
+                                 Background="Black"
+                                 Foreground="White"
+                                 IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
+                    <RadioButton GroupName="ColorSelector" Content="Weiss"
+                                 Background="White"
+                                 Foreground="Black" />
+                    <RadioButton GroupName="ColorSelector" Content="Grün"
+                                 Background="Lime"
+                                 Foreground="Black"
+                                 IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
+                    <RadioButton GroupName="ColorSelector" Content="Gelb"
+                                 Background="Yellow"
+                                 Foreground="Black"
+                                 IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
+                    <RadioButton GroupName="ColorSelector" Content="Blau"
+                                 Background="Blue"
+                                 Foreground="White"
+                                 IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
+                    <RadioButton GroupName="ColorSelector" Content="Rot"
+                                 Background="Red"
+                                 Foreground="White"
+                                 IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
+
+                    <!-- Other Color Option -->
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton Name="OtherColorRadioButton" GroupName="ColorSelector" Content="andere"
+                                     IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
+                        <Button Name="BrowseColorsButton" Content="..."
+                                Width="28"
+                                Height="30" />
+                    </StackPanel>
+
+                    <!-- Pixel Size Display -->
+                    <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                        <TextBlock Text="Pixel:" />
+                        <TextBlock Text="0" Margin="5,0,0,0" />
+                    </StackPanel>
+
+                    <!-- Show Grid Lines Option -->
+                    <CheckBox Name="ShowGridLinesCheckBox" Content="Gitter anzeigen" IsChecked="True" />
+
+                </StackPanel>
+
+                <!-- Image Panel -->
+                <Border BorderBrush="Gray"
+                        BorderThickness="1"
+                        Margin="140,31,35,110">
+                    <Grid Name="ImagePanel"
+                          Background="White"
+                          ShowGridLines="True" />
+                </Border>
+            </Grid>
+        </DockPanel>
+    </Grid>
+</Window>
