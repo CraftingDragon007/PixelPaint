@@ -10,7 +10,7 @@
 
 
     <StackPanel>
-        <ColorView VerticalAlignment="Stretch" Name="ColorPicker" IsAlphaVisible="False" />
+        <ColorView VerticalAlignment="Stretch" Name="ColorPicker" />
         <WrapPanel HorizontalAlignment="Right">
             <Button Margin="10" Name="OkButton" Content="OK" Height="30" Click="OkButton_Click" />
             <Button Margin="10" Name="CancelButton" Content="Cancel" Height="30" Click="CancelButton_Click" />

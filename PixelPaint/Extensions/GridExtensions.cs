@@ -14,7 +14,8 @@ public static class GridExtensions
         {
             PixelCountX = grid.ColumnDefinitions.Count,
             PixelCountY = grid.RowDefinitions.Count,
-            Pixels = new Color[grid.ColumnDefinitions.Count, grid.RowDefinitions.Count]
+            Pixels = new Color[grid.ColumnDefinitions.Count, grid.RowDefinitions.Count],
+            PixelCount = grid.ColumnDefinitions.Count * grid.RowDefinitions.Count
         };
 
         for (var x = 0; x < grid.ColumnDefinitions.Count; x++)

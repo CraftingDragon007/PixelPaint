@@ -91,7 +91,8 @@
                                  IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
                     <RadioButton GroupName="ColorSelector" Content="Weiss"
                                  Background="White"
-                                 Foreground="Black" />
+                                 Foreground="Black"
+                                 IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
                     <RadioButton GroupName="ColorSelector" Content="Grün"
                                  Background="Lime"
                                  Foreground="Black"
@@ -119,22 +120,33 @@
                     </StackPanel>
 
                     <!-- Pixel Size Display -->
-                    <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                    <StackPanel Orientation="Horizontal" Margin="0,20,0,20">
                         <TextBlock Text="Pixel:" />
                         <TextBlock Text="0" Margin="5,0,0,0" />
                     </StackPanel>
 
                     <!-- Show Grid Lines Option -->
                     <CheckBox Name="ShowGridLinesCheckBox" Content="Gitter anzeigen" IsChecked="True" />
+                    
+                    <!-- Tool Radio Buttons -->
+                    <RadioButton GroupName="ToolSelector" Content="Pinsel"
+                                 IsChecked="True"
+                                 IsCheckedChanged="OnBrushToolRadioButtonIsCheckedChanged" />
+                    
+                    <RadioButton GroupName="ToolSelector" Content="Eimer"
+                                 IsCheckedChanged="OnFillToolRadioButtonIsCheckedChanged" />
+                    
+                    <RadioButton GroupName="ToolSelector" Content="Pipette"
+                                 IsCheckedChanged="OnPipetteToolRadioButtonIsCheckedChanged" />
 
                 </StackPanel>
 
                 <!-- Image Panel -->
-                <Border BorderBrush="Gray"
+                <Border Name="EditorBorder" BorderBrush="Gray"
                         BorderThickness="1"
                         Margin="140,31,35,110">
                     <Grid Name="ImagePanel"
-                          Background="White"
+                          Background="Gray"
                           ShowGridLines="True" />
                 </Border>
             </Grid>

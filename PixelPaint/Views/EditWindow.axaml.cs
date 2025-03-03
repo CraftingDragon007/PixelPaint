@@ -1,10 +1,12 @@
 using System;
 using System.Linq;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using MsBox.Avalonia;
 using PixelPaint.Extensions;
 using PixelPaint.Services;
 
@@ -41,24 +43,40 @@ public partial class EditWindow : Window
         OpenMenuItem.Click += OpenMenuItemOnClick;
         SaveMenuItem.Click += SaveMenuItemOnClick;
         BrowseColorsButton.Click += BrowseColorsButtonOnClick;
+        _drawingService.OtherColorChanged += (sender, color) =>
+        {
+            OtherColorRadioButton.Background = new SolidColorBrush(color);
+            OtherColorRadioButton.Foreground = new SolidColorBrush(_drawingService.GetContrastColor(color));
+            OtherColorRadioButton.IsChecked = true;
+        };
     }
 
     private async void SaveMenuItemOnClick(object? sender, RoutedEventArgs e)
     {
+        if (_drawingService.ImagePanel is null)
+        {
+            await MessageBoxManager.GetMessageBoxStandard("Error", "No image to save").ShowAsPopupAsync(this);
+            return;
+        }
+        
         var fileService = _services.GetRequiredService<IFileService>();
         var dialogResult = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             DefaultExtension = "axp", FileTypeChoices = fileService.FileTypeFilter, Title = "Save Image"
         });
         if (dialogResult is null) return;
-        var file = dialogResult;
-        var localPath = file.TryGetLocalPath() ?? file.Path.ToString();
-        fileService.SaveImage(_drawingService.ImagePanel.ToImage(), localPath);
+        var localPath = dialogResult.TryGetLocalPath() ?? dialogResult.Path.ToString();
+        // Calculate the size of the editor without accessing the size of the grid
+        var margin = EditorBorder.Margin;
+        var borderSize = EditorBorder.BorderThickness;
+        var windowSize = new Size(Width - margin.Left - margin.Right - borderSize.Left - borderSize.Right,
+            Height - margin.Top - margin.Bottom - borderSize.Top - borderSize.Bottom);
+        fileService.SaveImage(_drawingService.ImagePanel.ToImage(), localPath, ((uint)windowSize.Width, (uint)windowSize.Height));
     }
 
     private async void BrowseColorsButtonOnClick(object? sender, RoutedEventArgs e)
     {
-        var colorDialog = new ColorDialog();
+        var colorDialog = new ColorDialog(_drawingService.CurrentColor);
         var color = await colorDialog.ShowDialog<Color?>(this);
         if (!color.HasValue) return;
         var contrastColor = _drawingService.GetContrastColor(color.Value);
@@ -81,7 +99,14 @@ public partial class EditWindow : Window
         var file = dialogResult[0];
 
         var localPath = file.TryGetLocalPath() ?? file.Path.ToString();
-        var image = fileService.LoadImage(localPath);
+        var (image, editorSize) = fileService.LoadImage(localPath);
+        // calculate the size of the window without setting the size of the editor
+        var margin = EditorBorder.Margin;
+        var borderSize = EditorBorder.BorderThickness;
+        var windowSize = new Size(editorSize.width + margin.Left + margin.Right + borderSize.Left + borderSize.Right,
+            editorSize.height + margin.Top + margin.Bottom + borderSize.Top + borderSize.Bottom);
+        Width = windowSize.Width;
+        Height = windowSize.Height;
         _drawingService.DrawImage(image);
     }
 
@@ -91,5 +116,23 @@ public partial class EditWindow : Window
         var color = (ISolidColorBrush?)radioButton.Background;
         if (color is null) return;
         _drawingService.CurrentColor = color.Color;
+    }
+
+    private void OnBrushToolRadioButtonIsCheckedChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not RadioButton { IsChecked: true }) return;
+        _drawingService.CurrentTool = Tool.Brush;
+    }
+
+    private void OnFillToolRadioButtonIsCheckedChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not RadioButton { IsChecked: true }) return;
+        _drawingService.CurrentTool = Tool.Fill;
+    }
+
+    private void OnPipetteToolRadioButtonIsCheckedChanged(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not RadioButton { IsChecked: true }) return;
+        _drawingService.CurrentTool = Tool.Pipette;
     }
 }
