@@ -124,17 +124,20 @@ public class FileService : IFileService
             fileStream.WriteByte(color.B);
         }
 
-        var bitsPerPixel = (uint)Math.Ceiling(Math.Log2(colors.Length));
+        var bitsPerPixel = (uint)Math.Ceiling(Math.Log2(Math.Max(1, colors.Length)));
+
+        if (colors.Length <= 1) return;
         var index = colors.Select((c, i) => (c, i)).ToDictionary(x => x.c, x => x.i);
 
         byte currentByte = 0;
         var bitsWritten = 0;
 
-        foreach (var color in image.Pixels)
+        foreach (var pixelColor in image.Pixels) // Iterate through actual pixels
         {
-            var colorIndex = index[color];
+            var colorIndex = index[pixelColor];
             for (var i = 0; i < bitsPerPixel; i++)
             {
+                // Write LSB first into the current byte
                 currentByte |= (byte)(((colorIndex >> i) & 1) << bitsWritten);
                 if (++bitsWritten != 8) continue;
                 fileStream.WriteByte(currentByte);
@@ -238,7 +241,7 @@ public class FileService : IFileService
         // Read color palette
         var colorCount = ReadUint(fileStream);
         var colors = new Color[colorCount];
-        for (int i = 0; i < colorCount; i++)
+        for (var i = 0; i < colorCount; i++)
         {
             colors[i] = Color.FromArgb(
                 (byte)fileStream.ReadByte(),
@@ -249,46 +252,61 @@ public class FileService : IFileService
         }
 
         // Calculate bits per pixel
-        var bitsPerPixel = colors.Length > 1 ? 
-            (int)Math.Log2(colors.Length - 1) + 1 : 0;
+        var bitsPerPixel = colorCount > 1 ? (int)Math.Ceiling(Math.Log2(colorCount)) : 0;
 
         // Read pixel data
         var pixels = new Color[imageWidth * imageHeight];
-        switch (colors.Length)
+        if (colorCount == 0)
         {
-            case > 1:
+            // If no colors, fill the image with transparent pixels
+            for (var i = 0; i < pixels.Length; i++)
+                pixels[i] = Colors.Transparent;
+            
+        }
+        else if (colorCount == 1)
+        {
+            // If only one color, fill the entire image with it. No pixel data to read.
+            for (var i = 0; i < pixels.Length; i++)
+                pixels[i] = colors[0];
+        }
+        else // colorCount > 1, so bitsPerPixel will be > 0
+        {
+            byte currentByte = 0;
+            var bitsAvailable = 0;
+            var pixelIndex = 0;
+
+            while (pixelIndex < pixels.Length)
             {
-                byte currentByte = 0;
-                var bitsAvailable = 0;
-                var pixelIndex = 0;
-
-                while (pixelIndex < pixels.Length)
+                // Read a new byte if no bits are available
+                if (bitsAvailable < bitsPerPixel) // Check if enough bits for the next pixel
                 {
-                    if (bitsAvailable == 0)
+                    // Read the next byte from the stream
+                    var nextByte = fileStream.ReadByte();
+                    if (nextByte == -1) // End of stream reached unexpectedly
                     {
-                        currentByte = (byte)fileStream.ReadByte();
-                        bitsAvailable = 8;
+                        // This indicates corrupt or truncated file
+                        throw new EndOfStreamException("Unexpected end of pixel data stream.");
                     }
-
-                    var colorIndex = 0;
-                    for (var i = 0; i < bitsPerPixel && bitsAvailable > 0; i++)
-                    {
-                        colorIndex |= ((currentByte & 1) << i);
-                        currentByte >>= 1;
-                        bitsAvailable--;
-                    }
-
-                    pixels[pixelIndex++] = colors[colorIndex];
+                    currentByte |= (byte)(nextByte << bitsAvailable); // Append new byte's bits
+                    bitsAvailable += 8;
                 }
 
-                break;
-            }
-            case 1:
-            {
-                // If only one color, fill the entire image with it
-                for (int i = 0; i < pixels.Length; i++)
-                    pixels[i] = colors[0];
-                break;
+                var colorIndex = 0;
+                // Read bitsPerPixel bits for the current pixel's color index
+                for (var i = 0; i < bitsPerPixel; i++)
+                {
+                    colorIndex |= ((currentByte & 1) << i); // Read LSB first
+                    currentByte >>= 1;
+                }
+                bitsAvailable -= bitsPerPixel;
+
+                if (colorIndex >= colors.Length)
+                {
+                    // This can happen if the bitsPerPixel is slightly off,
+                    // or if the data is corrupted.
+                    throw new InvalidDataException($"Color index {colorIndex} out of bounds for palette size {colors.Length}");
+                }
+                pixels[pixelIndex++] = colors[colorIndex];
             }
         }
 
@@ -300,6 +318,7 @@ public class FileService : IFileService
             PixelCount = (int)(imageWidth * imageHeight)
         };
         
+        // Populate the 2D array from the 1D array
         for (var y = 0; y < imageHeight; y++)
         for (var x = 0; x < imageWidth; x++)
             image.Pixels[x, y] = pixels[y * imageWidth + x];
