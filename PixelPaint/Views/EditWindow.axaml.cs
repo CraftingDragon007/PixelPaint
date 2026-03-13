@@ -164,6 +164,7 @@ public partial class EditWindow : Window
             FileTypeChoices =
             [
                 new FilePickerFileType("PNG-Bild") { Patterns = ["*.png"] },
+                new FilePickerFileType("SVG-Bild")  { Patterns = ["*.svg"], MimeTypes = ["image/svg+xml"] },
                 new FilePickerFileType("BMP-Bild") { Patterns = ["*.bmp"] }
             ],
             Title = "Bild exportieren"
@@ -172,7 +173,16 @@ public partial class EditWindow : Window
 
         var path = dialogResult.TryGetLocalPath() ?? dialogResult.Path.ToString();
         var image = _drawingService.ImagePanel.ToImage();
-        ExportToBitmap(image, path);
+
+        if (path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
+        {
+            var fileService = _services.GetRequiredService<IFileService>();
+            fileService.SaveImage(image, path, GetEditorSize());
+        }
+        else
+        {
+            ExportToBitmap(image, path);
+        }
     }
 
     private static void ExportToBitmap(PixelPaint.Models.Image image, string path)
