@@ -17,7 +17,9 @@ public interface IDrawingService
     Grid? ImagePanel { get; set; }
     Color CurrentColor { get; set; }
     Tool CurrentTool { get; set; }
-    
+    bool CanUndo { get; }
+    bool CanRedo { get; }
+
     void DrawImage(Image image);
 
     Color GetContrastColor(Color color);
@@ -26,6 +28,9 @@ public interface IDrawingService
     void OnPointerMoved(object? sender, PointerEventArgs e);
     void OnPointerReleased(object? sender, PointerReleasedEventArgs e);
     void DrawEmptyImage();
+    void NewImage(int pixelCountX, int pixelCountY);
+    void Undo();
+    void Redo();
     event Action<object?, Color> OtherColorChanged;
 }
 
@@ -40,6 +45,11 @@ public class DrawingService : IDrawingService
 {
     private Image? _image;
     private bool _pointerDown;
+    private readonly Stack<Color[,]> _undoStack = new();
+    private readonly Stack<Color[,]> _redoStack = new();
+
+    public bool CanUndo => _undoStack.Count > 0;
+    public bool CanRedo => _redoStack.Count > 0;
 
     public Color GetContrastColor(Color color)
     {
@@ -63,27 +73,77 @@ public class DrawingService : IDrawingService
         };
 
         for (var x = 0; x < image.PixelCountX; x++)
-        {
             for (var y = 0; y < image.PixelCountY; y++)
-            {
                 image.Pixels[x, y] = Colors.White;
-            }
-        }
-        
+
         DrawImage(image);
+        _undoStack.Clear();
+        _redoStack.Clear();
+    }
+
+    public void NewImage(int pixelCountX, int pixelCountY)
+    {
+        var image = new Image
+        {
+            PixelCountX = pixelCountX,
+            PixelCountY = pixelCountY,
+            Pixels = new Color[pixelCountX, pixelCountY],
+            PixelCount = pixelCountX * pixelCountY
+        };
+        for (var x = 0; x < pixelCountX; x++)
+            for (var y = 0; y < pixelCountY; y++)
+                image.Pixels[x, y] = Colors.White;
+
+        DrawImage(image);
+        _undoStack.Clear();
+        _redoStack.Clear();
+    }
+
+    public void Undo()
+    {
+        if (!CanUndo || _image is null) return;
+        _redoStack.Push((Color[,])_image.Pixels.Clone());
+        _image.Pixels = _undoStack.Pop();
+        RefreshPixels();
+    }
+
+    public void Redo()
+    {
+        if (!CanRedo || _image is null) return;
+        _undoStack.Push((Color[,])_image.Pixels.Clone());
+        _image.Pixels = _redoStack.Pop();
+        RefreshPixels();
+    }
+
+    private void RefreshPixels()
+    {
+        if (_image is null || ImagePanel is null) return;
+        for (var x = 0; x < _image.PixelCountX; x++)
+        for (var y = 0; y < _image.PixelCountY; y++)
+        {
+            var rect = ImagePanel.Children
+                .Where(c => Grid.GetColumn(c) == x && Grid.GetRow(c) == y)
+                .OfType<Rectangle>().First();
+            rect.Fill = new SolidColorBrush(_image.Pixels[x, y]);
+        }
+    }
+
+    private void SaveUndoState()
+    {
+        if (_image is null) return;
+        _undoStack.Push((Color[,])_image.Pixels.Clone());
+        _redoStack.Clear();
     }
 
     public void DrawImage(Image image)
     {
         if (ImagePanel is null) throw new NullReferenceException("ImagePanel is null");
         var size = ImagePanel.Bounds.Size;
-        var pixelSize = new Size(size.Width / image.PixelCountX, size.Height / image.PixelCountY);
         ImagePanel.Children.Clear();
         var columnDefinitions = new ColumnDefinitions();
         var rowDefinitions = new RowDefinitions();
 
         for (var x = 0; x < image.PixelCountX; x++) columnDefinitions.Add(new ColumnDefinition(GridLength.Star));
-
         for (var y = 0; y < image.PixelCountY; y++) rowDefinitions.Add(new RowDefinition(GridLength.Star));
 
         ImagePanel.ColumnDefinitions = columnDefinitions;
@@ -118,6 +178,7 @@ public class DrawingService : IDrawingService
         var pixels = new Queue<(int x, int y)>();
         pixels.Enqueue(position);
         var targetColor = _image.Pixels[position.x, position.y];
+        if (targetColor == color) return;
         var brush = new SolidColorBrush(color);
         while (pixels.Count > 0)
         {
@@ -144,11 +205,13 @@ public class DrawingService : IDrawingService
         switch (CurrentTool)
         {
             case Tool.Brush:
+                SaveUndoState();
                 _image.Pixels[x, y] = CurrentColor;
                 ImagePanel.Children.Where(c => Grid.GetColumn(c) == x && Grid.GetRow(c) == y).OfType<Rectangle>().First().Fill =
                     new SolidColorBrush(CurrentColor);
                 break;
             case Tool.Fill:
+                SaveUndoState();
                 Fill(CurrentColor, (x, y));
                 break;
             case Tool.Pipette:

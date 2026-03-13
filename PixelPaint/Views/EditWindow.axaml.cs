@@ -1,9 +1,12 @@
 using System;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using MsBox.Avalonia;
@@ -16,6 +19,7 @@ public partial class EditWindow : Window
 {
     private readonly IDrawingService _drawingService;
     private readonly IServiceProvider _services;
+    private string? _currentFilePath;
 
     public EditWindow(IDrawingService drawingService, IServiceProvider services)
     {
@@ -42,6 +46,12 @@ public partial class EditWindow : Window
         ShowGridLinesCheckBox.IsCheckedChanged += ShowGridLinesCheckBoxOnIsCheckedChanged;
         OpenMenuItem.Click += OpenMenuItemOnClick;
         SaveMenuItem.Click += SaveMenuItemOnClick;
+        SaveAsMenuItem.Click += SaveAsMenuItemOnClick;
+        ResetMenuItem.Click += ResetMenuItemOnClick;
+        PixelSizeMenuItem.Click += PixelSizeMenuItemOnClick;
+        ExportMenuItem.Click += ExportMenuItemOnClick;
+        UndoMenuItem.Click += UndoMenuItemOnClick;
+        RedoMenuItem.Click += RedoMenuItemOnClick;
         BrowseColorsButton.Click += BrowseColorsButtonOnClick;
         _drawingService.OtherColorChanged += (sender, color) =>
         {
@@ -51,28 +61,158 @@ public partial class EditWindow : Window
         };
     }
 
+    // ── Save ────────────────────────────────────────────────────────────────
+
     private async void SaveMenuItemOnClick(object? sender, RoutedEventArgs e)
     {
         if (_drawingService.ImagePanel is null)
         {
-            await MessageBoxManager.GetMessageBoxStandard("Error", "No image to save").ShowAsPopupAsync(this);
+            await MessageBoxManager.GetMessageBoxStandard("Fehler", "Kein Bild zum Speichern").ShowAsPopupAsync(this);
             return;
         }
-        
+
+        if (_currentFilePath is not null)
+        {
+            var fileService = _services.GetRequiredService<IFileService>();
+            var editorSize = GetEditorSize();
+            fileService.SaveImage(_drawingService.ImagePanel.ToImage(), _currentFilePath, editorSize);
+            return;
+        }
+
+        await DoSaveAs();
+    }
+
+    private async void SaveAsMenuItemOnClick(object? sender, RoutedEventArgs e)
+    {
+        await DoSaveAs();
+    }
+
+    private async System.Threading.Tasks.Task DoSaveAs()
+    {
+        if (_drawingService.ImagePanel is null)
+        {
+            await MessageBoxManager.GetMessageBoxStandard("Fehler", "Kein Bild zum Speichern").ShowAsPopupAsync(this);
+            return;
+        }
+
         var fileService = _services.GetRequiredService<IFileService>();
         var dialogResult = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            DefaultExtension = "axp", FileTypeChoices = fileService.FileTypeFilter, Title = "Save Image"
+            DefaultExtension = "axp",
+            FileTypeChoices = fileService.FileTypeFilter,
+            Title = "Bild speichern"
         });
         if (dialogResult is null) return;
         var localPath = dialogResult.TryGetLocalPath() ?? dialogResult.Path.ToString();
-        // Calculate the size of the editor without accessing the size of the grid
+        var editorSize = GetEditorSize();
+        fileService.SaveImage(_drawingService.ImagePanel.ToImage(), localPath, editorSize);
+        _currentFilePath = localPath;
+    }
+
+    private (uint width, uint height) GetEditorSize()
+    {
         var margin = EditorBorder.Margin;
         var borderSize = EditorBorder.BorderThickness;
-        var windowSize = new Size(Width - margin.Left - margin.Right - borderSize.Left - borderSize.Right,
-            Height - margin.Top - margin.Bottom - borderSize.Top - borderSize.Bottom);
-        fileService.SaveImage(_drawingService.ImagePanel.ToImage(), localPath, ((uint)windowSize.Width, (uint)windowSize.Height));
+        return ((uint)(Width - margin.Left - margin.Right - borderSize.Left - borderSize.Right),
+                (uint)(Height - margin.Top - margin.Bottom - borderSize.Top - borderSize.Bottom));
     }
+
+    // ── Reset ───────────────────────────────────────────────────────────────
+
+    private async void ResetMenuItemOnClick(object? sender, RoutedEventArgs e)
+    {
+        var box = MessageBoxManager.GetMessageBoxStandard(
+            "Zurücksetzen",
+            "Möchtest du das Bild wirklich zurücksetzen? Alle Änderungen gehen verloren.",
+            MsBox.Avalonia.Enums.ButtonEnum.YesNo);
+        var result = await box.ShowAsPopupAsync(this);
+        if (result == MsBox.Avalonia.Enums.ButtonResult.Yes)
+        {
+            _drawingService.DrawEmptyImage();
+            _currentFilePath = null;
+        }
+    }
+
+    // ── Pixel Size ──────────────────────────────────────────────────────────
+
+    private async void PixelSizeMenuItemOnClick(object? sender, RoutedEventArgs e)
+    {
+        var currentCols = ImagePanel.ColumnDefinitions.Count > 0 ? ImagePanel.ColumnDefinitions.Count : 32;
+        var currentRows = ImagePanel.RowDefinitions.Count > 0 ? ImagePanel.RowDefinitions.Count : 16;
+
+        var dialog = new PixelSizeDialog(currentCols, currentRows);
+        var result = await dialog.ShowDialog<(int width, int height)?>(this);
+        if (result is null) return;
+
+        _drawingService.NewImage(result.Value.width, result.Value.height);
+        _currentFilePath = null;
+    }
+
+    // ── Export ──────────────────────────────────────────────────────────────
+
+    private async void ExportMenuItemOnClick(object? sender, RoutedEventArgs e)
+    {
+        if (_drawingService.ImagePanel is null)
+        {
+            await MessageBoxManager.GetMessageBoxStandard("Fehler", "Kein Bild zum Exportieren").ShowAsPopupAsync(this);
+            return;
+        }
+
+        var dialogResult = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            DefaultExtension = "png",
+            FileTypeChoices =
+            [
+                new FilePickerFileType("PNG-Bild") { Patterns = ["*.png"] },
+                new FilePickerFileType("BMP-Bild") { Patterns = ["*.bmp"] }
+            ],
+            Title = "Bild exportieren"
+        });
+        if (dialogResult is null) return;
+
+        var path = dialogResult.TryGetLocalPath() ?? dialogResult.Path.ToString();
+        var image = _drawingService.ImagePanel.ToImage();
+        ExportToBitmap(image, path);
+    }
+
+    private static void ExportToBitmap(PixelPaint.Models.Image image, string path)
+    {
+        using var bitmap = new WriteableBitmap(
+            new PixelSize(image.PixelCountX, image.PixelCountY),
+            new Vector(96, 96),
+            PixelFormats.Bgra8888,
+            AlphaFormat.Unpremul);
+
+        using (var buf = bitmap.Lock())
+        {
+            for (var y = 0; y < image.PixelCountY; y++)
+            for (var x = 0; x < image.PixelCountX; x++)
+            {
+                var color = image.Pixels[x, y];
+                var offset = y * buf.RowBytes + x * 4;
+                Marshal.WriteByte(buf.Address, offset,     color.B);
+                Marshal.WriteByte(buf.Address, offset + 1, color.G);
+                Marshal.WriteByte(buf.Address, offset + 2, color.R);
+                Marshal.WriteByte(buf.Address, offset + 3, color.A);
+            }
+        }
+
+        bitmap.Save(path);
+    }
+
+    // ── Undo / Redo ─────────────────────────────────────────────────────────
+
+    private void UndoMenuItemOnClick(object? sender, RoutedEventArgs e)
+    {
+        _drawingService.Undo();
+    }
+
+    private void RedoMenuItemOnClick(object? sender, RoutedEventArgs e)
+    {
+        _drawingService.Redo();
+    }
+
+    // ── Existing handlers ───────────────────────────────────────────────────
 
     private async void BrowseColorsButtonOnClick(object? sender, RoutedEventArgs e)
     {
@@ -94,13 +234,12 @@ public partial class EditWindow : Window
     {
         var fileService = _services.GetRequiredService<IFileService>();
         var dialogResult = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            { FileTypeFilter = fileService.FileTypeFilter, AllowMultiple = false, Title = "Open Image" });
+            { FileTypeFilter = fileService.FileTypeFilter, AllowMultiple = false, Title = "Bild öffnen" });
         if (dialogResult.Count == 0) return;
         var file = dialogResult[0];
 
         var localPath = file.TryGetLocalPath() ?? file.Path.ToString();
         var (image, editorSize) = fileService.LoadImage(localPath);
-        // calculate the size of the window without setting the size of the editor
         var margin = EditorBorder.Margin;
         var borderSize = EditorBorder.BorderThickness;
         var windowSize = new Size(editorSize.width + margin.Left + margin.Right + borderSize.Left + borderSize.Right,
@@ -108,6 +247,7 @@ public partial class EditWindow : Window
         Width = windowSize.Width;
         Height = windowSize.Height;
         _drawingService.DrawImage(image);
+        _currentFilePath = localPath;
     }
 
     private void OnColorRadioButtonIsCheckedChanged(object? sender, RoutedEventArgs e)
@@ -136,3 +276,4 @@ public partial class EditWindow : Window
         _drawingService.CurrentTool = Tool.Pipette;
     }
 }
+

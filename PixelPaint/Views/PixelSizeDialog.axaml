@@ -1,0 +1,34 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PixelPaint.Views.PixelSizeDialog"
+        Title="Pixel Grösse"
+        Width="260" Height="170"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <StackPanel Margin="20" Spacing="8">
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Breite (Pixel):" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <NumericUpDown Grid.Row="0" Grid.Column="1"
+                           Name="WidthInput"
+                           Minimum="1" Maximum="512"
+                           Value="32"
+                           FormatString="0"
+                           Increment="1" />
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Höhe (Pixel):" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <NumericUpDown Grid.Row="1" Grid.Column="1"
+                           Name="HeightInput"
+                           Minimum="1" Maximum="512"
+                           Value="16"
+                           FormatString="0"
+                           Increment="1" />
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,8,0,0">
+            <Button Name="OkButton" Content="OK" Width="80" />
+            <Button Name="CancelButton" Content="Abbrechen" Width="80" />
+        </StackPanel>
+    </StackPanel>
+</Window>
+

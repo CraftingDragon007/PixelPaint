@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="816" d:DesignHeight="538"
         x:Class="PixelPaint.Views.EditWindow"
-        Title="EditWindow"
+        Title="PixelPaint"
         Width="816" Height="538"
         Icon="/Assets/Icon.ico">
 
