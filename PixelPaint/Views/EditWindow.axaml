@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:PixelPaint.Controls"
         mc:Ignorable="d" d:DesignWidth="816" d:DesignHeight="538"
         x:Class="PixelPaint.Views.EditWindow"
         Title="PixelPaint"
@@ -81,8 +82,8 @@
             </Menu>
 
             <!-- Main Content -->
-            <Grid>
-                <StackPanel Margin="12,31,0,0" Width="85" HorizontalAlignment="Left">
+            <Grid Margin="12" ColumnDefinitions="120,*" ColumnSpacing="16">
+                <StackPanel Grid.Column="0" Margin="0,19,0,0" Width="120" Spacing="6">
                     <!-- Color Radio Buttons -->
                     <RadioButton GroupName="ColorSelector" Content="Schwarz"
                                  IsChecked="True"
@@ -119,14 +120,33 @@
                                 Height="30" />
                     </StackPanel>
 
-                    <!-- Pixel Size Display -->
-                    <StackPanel Orientation="Horizontal" Margin="0,20,0,20">
-                        <TextBlock Text="Pixel:" />
-                        <TextBlock Text="0" Margin="5,0,0,0" />
+                    <Separator Margin="0,12,0,4" />
+
+                    <TextBlock Text="Bildgrösse" FontWeight="Bold" />
+                    <TextBlock Name="ImageSizeTextBlock" Text="32 × 16" />
+
+                    <TextBlock Text="Zoom" FontWeight="Bold" Margin="0,8,0,0" />
+                    <TextBlock Name="ZoomTextBlock" Text="100 %" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Button Name="ZoomOutButton" Content="-" Width="28" />
+                        <Button Name="ZoomResetButton" Content="100 %" MinWidth="52" />
+                        <Button Name="ZoomInButton" Content="+" Width="28" />
                     </StackPanel>
 
+                    <Button Name="ZoomFitButton" Content="Einpassen" />
+
+                    <TextBlock Text="Pinselgrösse" FontWeight="Bold" Margin="0,8,0,0" />
+                    <Slider Name="BrushSizeSlider"
+                            Minimum="1"
+                            Maximum="256"
+                            Value="1"
+                            TickFrequency="1"
+                            IsSnapToTickEnabled="True" />
+                    <TextBlock Name="BrushSizeTextBlock" Text="1 px" />
+
                     <!-- Show Grid Lines Option -->
-                    <CheckBox Name="ShowGridLinesCheckBox" Content="Gitter anzeigen" IsChecked="True" />
+                    <CheckBox Name="ShowGridLinesCheckBox" Content="Gitter anzeigen" IsChecked="True" Margin="0,8,0,0" />
                     
                     <!-- Tool Radio Buttons -->
                     <RadioButton GroupName="ToolSelector" Content="Pinsel"
@@ -142,12 +162,27 @@
                 </StackPanel>
 
                 <!-- Image Panel -->
-                <Border Name="EditorBorder" BorderBrush="Gray"
+                <Border Grid.Column="1"
+                        Name="EditorBorder"
+                        BorderBrush="Gray"
                         BorderThickness="1"
-                        Margin="140,31,35,110">
-                    <Grid Name="ImagePanel"
-                          Background="Gray"
-                          ShowGridLines="True" />
+                        Margin="0,19,0,0"
+                        Background="#202020"
+                        Padding="8">
+                    <ScrollViewer Name="EditorScrollViewer"
+                                  UseLayoutRounding="True"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ScrollViewer.GestureRecognizers>
+                            <PinchGestureRecognizer />
+                        </ScrollViewer.GestureRecognizers>
+                        <controls:PixelCanvas Name="PixelCanvas"
+                                              Background="White"
+                                              ShowGridLines="True"
+                                              HorizontalAlignment="Left"
+                                              VerticalAlignment="Top"
+                                              UseLayoutRounding="True" />
+                    </ScrollViewer>
                 </Border>
             </Grid>
         </DockPanel>

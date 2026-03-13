@@ -8,7 +8,8 @@ public static class ServiceCollectionExtensions
     public static void AddCommonServices(this ServiceCollection services)
     {
         services.AddTransient<IFileService, FileService>();
-        services.AddSingleton<IDrawingService, DrawingService>();
+        services.AddSingleton<EditorZoomController>();
+        services.AddTransient<IDrawingService, DrawingService>();
 
         services.AddSingleton<MainWindowViewModel>();
     }

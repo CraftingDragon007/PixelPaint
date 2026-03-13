@@ -5,6 +5,10 @@ namespace PixelPaint.Views;
 
 public partial class PixelSizeDialog : Window
 {
+    public PixelSizeDialog() : this(32, 16)
+    {
+    }
+
     public PixelSizeDialog(int currentWidth, int currentHeight)
     {
         InitializeComponent();

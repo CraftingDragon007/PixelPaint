@@ -6,6 +6,10 @@ namespace PixelPaint.Views;
 
 public partial class ColorDialog : Window
 {
+    public ColorDialog() : this(null)
+    {
+    }
+
     public ColorDialog(Color? defaultColor = null)
     {
         InitializeComponent();

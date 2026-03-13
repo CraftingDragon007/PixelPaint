@@ -1,32 +1,43 @@
 using System;
-using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Platform.Storage;
-using Microsoft.Extensions.DependencyInjection;
+using Avalonia.Threading;
 using MsBox.Avalonia;
-using PixelPaint.Extensions;
 using PixelPaint.Services;
+using Image = PixelPaint.Models.Image;
 
 namespace PixelPaint.Views;
 
 public partial class EditWindow : Window
 {
     private readonly IDrawingService _drawingService;
-    private readonly IServiceProvider _services;
+    private readonly IFileService _fileService;
+    private readonly EditorZoomController _zoomController;
     private string? _currentFilePath;
+    private bool _isDrawing;
+    private bool _fitZoomAfterRefresh = true;
+    private double? _pinchStartZoom;
 
-    public EditWindow(IDrawingService drawingService, IServiceProvider services)
+    public EditWindow() : this(new DrawingService(), new FileService(), new EditorZoomController())
+    {
+    }
+
+    public EditWindow(IDrawingService drawingService, IFileService fileService, EditorZoomController zoomController)
     {
         InitializeComponent();
         _drawingService = drawingService;
-        _services = services;
-        _drawingService.ImagePanel = ImagePanel;
+        _fileService = fileService;
+        _zoomController = zoomController;
+
         var random = new Random();
         var buffer = new byte[3];
         random.NextBytes(buffer);
@@ -40,10 +51,22 @@ public partial class EditWindow : Window
 
     private void RegisterEvents()
     {
-        ImagePanel.PointerPressed += _drawingService.OnPointerPressed;
-        ImagePanel.PointerMoved += _drawingService.OnPointerMoved;
-        ImagePanel.PointerReleased += _drawingService.OnPointerReleased;
+        Opened += (_, _) => ScheduleZoomToFit();
+
+        PixelCanvas.PointerPressed += PixelCanvasOnPointerPressed;
+        PixelCanvas.PointerMoved += PixelCanvasOnPointerMoved;
+        PixelCanvas.PointerReleased += PixelCanvasOnPointerReleased;
+        PixelCanvas.PointerCaptureLost += PixelCanvasOnPointerCaptureLost;
+        EditorScrollViewer.AddHandler(
+            InputElement.PointerWheelChangedEvent,
+            EditorScrollViewerOnPointerWheelChanged,
+            RoutingStrategies.Tunnel | RoutingStrategies.Bubble,
+            handledEventsToo: true);
+        EditorScrollViewer.AddHandler(Gestures.PinchEvent, OnPinchGesture);
+        EditorScrollViewer.AddHandler(Gestures.PinchEndedEvent, OnPinchGestureEnded);
+
         ShowGridLinesCheckBox.IsCheckedChanged += ShowGridLinesCheckBoxOnIsCheckedChanged;
+        BrushSizeSlider.ValueChanged += BrushSizeSliderOnValueChanged;
         OpenMenuItem.Click += OpenMenuItemOnClick;
         SaveMenuItem.Click += SaveMenuItemOnClick;
         SaveAsMenuItem.Click += SaveAsMenuItemOnClick;
@@ -53,19 +76,33 @@ public partial class EditWindow : Window
         UndoMenuItem.Click += UndoMenuItemOnClick;
         RedoMenuItem.Click += RedoMenuItemOnClick;
         BrowseColorsButton.Click += BrowseColorsButtonOnClick;
+        ZoomInButton.Click += (_, _) => ZoomByFactor(1.25d);
+        ZoomOutButton.Click += (_, _) => ZoomByFactor(1 / 1.25d);
+        ZoomResetButton.Click += (_, _) => ApplyZoom(1d);
+        ZoomFitButton.Click += (_, _) => ZoomToFit();
+
+        _drawingService.ImageChanged += DrawingServiceOnImageChanged;
         _drawingService.OtherColorChanged += (sender, color) =>
         {
             OtherColorRadioButton.Background = new SolidColorBrush(color);
             OtherColorRadioButton.Foreground = new SolidColorBrush(_drawingService.GetContrastColor(color));
             OtherColorRadioButton.IsChecked = true;
         };
+
+        BrushSizeSlider.Value = _drawingService.BrushSize;
+        UpdateBrushSizeUi(_drawingService.BrushSize);
+        PixelCanvas.ShowGridLines = ShowGridLinesCheckBox.IsChecked ?? true;
+        UpdateCommandState();
+        UpdateZoomUi();
     }
 
     // ── Save ────────────────────────────────────────────────────────────────
 
     private async void SaveMenuItemOnClick(object? sender, RoutedEventArgs e)
     {
-        if (_drawingService.ImagePanel is null)
+        _drawingService.EndInteraction();
+        var image = _drawingService.CurrentImage;
+        if (image is null)
         {
             await MessageBoxManager.GetMessageBoxStandard("Fehler", "Kein Bild zum Speichern").ShowAsPopupAsync(this);
             return;
@@ -73,9 +110,7 @@ public partial class EditWindow : Window
 
         if (_currentFilePath is not null)
         {
-            var fileService = _services.GetRequiredService<IFileService>();
-            var editorSize = GetEditorSize();
-            fileService.SaveImage(_drawingService.ImagePanel.ToImage(), _currentFilePath, editorSize);
+            _fileService.SaveImage(image, _currentFilePath, GetEditorSize());
             return;
         }
 
@@ -87,34 +122,33 @@ public partial class EditWindow : Window
         await DoSaveAs();
     }
 
-    private async System.Threading.Tasks.Task DoSaveAs()
+    private async Task DoSaveAs()
     {
-        if (_drawingService.ImagePanel is null)
+        _drawingService.EndInteraction();
+        var image = _drawingService.CurrentImage;
+        if (image is null)
         {
             await MessageBoxManager.GetMessageBoxStandard("Fehler", "Kein Bild zum Speichern").ShowAsPopupAsync(this);
             return;
         }
 
-        var fileService = _services.GetRequiredService<IFileService>();
         var dialogResult = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             DefaultExtension = "axp",
-            FileTypeChoices = fileService.FileTypeFilter,
+            FileTypeChoices = _fileService.FileTypeFilter,
             Title = "Bild speichern"
         });
         if (dialogResult is null) return;
         var localPath = dialogResult.TryGetLocalPath() ?? dialogResult.Path.ToString();
-        var editorSize = GetEditorSize();
-        fileService.SaveImage(_drawingService.ImagePanel.ToImage(), localPath, editorSize);
+        _fileService.SaveImage(image, localPath, GetEditorSize());
         _currentFilePath = localPath;
     }
 
     private (uint width, uint height) GetEditorSize()
     {
-        var margin = EditorBorder.Margin;
-        var borderSize = EditorBorder.BorderThickness;
-        return ((uint)(Width - margin.Left - margin.Right - borderSize.Left - borderSize.Right),
-                (uint)(Height - margin.Top - margin.Bottom - borderSize.Top - borderSize.Bottom));
+        var viewport = GetViewportSize();
+        return ((uint)Math.Max(1, Math.Round(viewport.Width)),
+                (uint)Math.Max(1, Math.Round(viewport.Height)));
     }
 
     // ── Reset ───────────────────────────────────────────────────────────────
@@ -128,6 +162,7 @@ public partial class EditWindow : Window
         var result = await box.ShowAsPopupAsync(this);
         if (result == MsBox.Avalonia.Enums.ButtonResult.Yes)
         {
+            _fitZoomAfterRefresh = true;
             _drawingService.DrawEmptyImage();
             _currentFilePath = null;
         }
@@ -137,13 +172,15 @@ public partial class EditWindow : Window
 
     private async void PixelSizeMenuItemOnClick(object? sender, RoutedEventArgs e)
     {
-        var currentCols = ImagePanel.ColumnDefinitions.Count > 0 ? ImagePanel.ColumnDefinitions.Count : 32;
-        var currentRows = ImagePanel.RowDefinitions.Count > 0 ? ImagePanel.RowDefinitions.Count : 16;
+        var currentImage = _drawingService.CurrentImage;
+        var currentCols = currentImage?.PixelCountX ?? 32;
+        var currentRows = currentImage?.PixelCountY ?? 16;
 
         var dialog = new PixelSizeDialog(currentCols, currentRows);
         var result = await dialog.ShowDialog<(int width, int height)?>(this);
         if (result is null) return;
 
+        _fitZoomAfterRefresh = true;
         _drawingService.NewImage(result.Value.width, result.Value.height);
         _currentFilePath = null;
     }
@@ -152,7 +189,9 @@ public partial class EditWindow : Window
 
     private async void ExportMenuItemOnClick(object? sender, RoutedEventArgs e)
     {
-        if (_drawingService.ImagePanel is null)
+        _drawingService.EndInteraction();
+        var image = _drawingService.CurrentImage;
+        if (image is null)
         {
             await MessageBoxManager.GetMessageBoxStandard("Fehler", "Kein Bild zum Exportieren").ShowAsPopupAsync(this);
             return;
@@ -172,12 +211,10 @@ public partial class EditWindow : Window
         if (dialogResult is null) return;
 
         var path = dialogResult.TryGetLocalPath() ?? dialogResult.Path.ToString();
-        var image = _drawingService.ImagePanel.ToImage();
 
         if (path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
         {
-            var fileService = _services.GetRequiredService<IFileService>();
-            fileService.SaveImage(image, path, GetEditorSize());
+            _fileService.SaveImage(image, path, GetEditorSize());
         }
         else
         {
@@ -185,7 +222,7 @@ public partial class EditWindow : Window
         }
     }
 
-    private static void ExportToBitmap(PixelPaint.Models.Image image, string path)
+    private static void ExportToBitmap(Image image, string path)
     {
         using var bitmap = new WriteableBitmap(
             new PixelSize(image.PixelCountX, image.PixelCountY),
@@ -215,11 +252,13 @@ public partial class EditWindow : Window
     private void UndoMenuItemOnClick(object? sender, RoutedEventArgs e)
     {
         _drawingService.Undo();
+        UpdateCommandState();
     }
 
     private void RedoMenuItemOnClick(object? sender, RoutedEventArgs e)
     {
         _drawingService.Redo();
+        UpdateCommandState();
     }
 
     // ── Existing handlers ───────────────────────────────────────────────────
@@ -237,26 +276,22 @@ public partial class EditWindow : Window
 
     private void ShowGridLinesCheckBoxOnIsCheckedChanged(object? sender, RoutedEventArgs e)
     {
-        if (sender is CheckBox checkBox) ImagePanel.ShowGridLines = checkBox.IsChecked ?? false;
+        if (sender is CheckBox checkBox)
+            PixelCanvas.ShowGridLines = checkBox.IsChecked ?? false;
     }
 
     private async void OpenMenuItemOnClick(object? sender, RoutedEventArgs e)
     {
-        var fileService = _services.GetRequiredService<IFileService>();
         var dialogResult = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            { FileTypeFilter = fileService.FileTypeFilter, AllowMultiple = false, Title = "Bild öffnen" });
+            { FileTypeFilter = _fileService.FileTypeFilter, AllowMultiple = false, Title = "Bild öffnen" });
         if (dialogResult.Count == 0) return;
         var file = dialogResult[0];
 
         var localPath = file.TryGetLocalPath() ?? file.Path.ToString();
-        var (image, editorSize) = fileService.LoadImage(localPath);
-        var margin = EditorBorder.Margin;
-        var borderSize = EditorBorder.BorderThickness;
-        var windowSize = new Size(editorSize.width + margin.Left + margin.Right + borderSize.Left + borderSize.Right,
-            editorSize.height + margin.Top + margin.Bottom + borderSize.Top + borderSize.Bottom);
-        Width = windowSize.Width;
-        Height = windowSize.Height;
-        _drawingService.DrawImage(image);
+        var (image, editorSize) = _fileService.LoadImage(localPath);
+        RestoreWindowSize(editorSize);
+        _fitZoomAfterRefresh = true;
+        _drawingService.LoadImage(image);
         _currentFilePath = localPath;
     }
 
@@ -284,6 +319,235 @@ public partial class EditWindow : Window
     {
         if (sender is not RadioButton { IsChecked: true }) return;
         _drawingService.CurrentTool = Tool.Pipette;
+    }
+
+    private void DrawingServiceOnImageChanged(object? sender, ImageChangedEventArgs e)
+    {
+        if (e.RequiresFullRefresh || !ReferenceEquals(PixelCanvas.CurrentImage, e.Image))
+            PixelCanvas.SetImage(e.Image);
+        else
+            PixelCanvas.ApplyPixelChanges(e.PixelChanges);
+
+        UpdateImageSizeUi(e.Image);
+        ClampBrushSizeToImage(e.Image);
+        UpdateCommandState();
+
+        if (_fitZoomAfterRefresh)
+        {
+            _fitZoomAfterRefresh = false;
+            ScheduleZoomToFit();
+        }
+        else
+        {
+            UpdateZoomUi();
+        }
+    }
+
+    private void PixelCanvasOnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(PixelCanvas).Properties.IsLeftButtonPressed)
+            return;
+
+        var pixel = PixelCanvas.TryGetPixel(e.GetPosition(PixelCanvas));
+        if (pixel is null)
+            return;
+
+        _isDrawing = true;
+        e.Pointer.Capture(PixelCanvas);
+        _drawingService.BeginInteraction(pixel.Value.x, pixel.Value.y);
+        UpdateCommandState();
+        e.Handled = true;
+    }
+
+    private void PixelCanvasOnPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (!_isDrawing)
+            return;
+
+        var pixel = PixelCanvas.TryGetPixel(e.GetPosition(PixelCanvas));
+        if (pixel is null)
+            return;
+
+        _drawingService.ContinueInteraction(pixel.Value.x, pixel.Value.y);
+        e.Handled = true;
+    }
+
+    private void PixelCanvasOnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (!_isDrawing)
+            return;
+
+        FinishDrawingInteraction(e.Pointer);
+        e.Handled = true;
+    }
+
+    private void PixelCanvasOnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        FinishDrawingInteraction(e.Pointer);
+    }
+
+    private void FinishDrawingInteraction(IPointer? pointer)
+    {
+        if (!_isDrawing)
+            return;
+
+        _isDrawing = false;
+        _drawingService.EndInteraction();
+        if (pointer is not null)
+            pointer.Capture(null);
+
+        UpdateCommandState();
+    }
+
+    private void EditorScrollViewerOnPointerWheelChanged(object? sender, PointerWheelEventArgs e)
+    {
+        if (!e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            return;
+
+        var zoomFactor = Math.Pow(1.2d, e.Delta.Y);
+        ApplyZoom(PixelCanvas.Zoom * zoomFactor, GetZoomAnchorPoint(e));
+        e.Handled = true;
+    }
+
+    private Point GetZoomAnchorPoint(PointerEventArgs e)
+    {
+        var canvasPosition = e.GetPosition(PixelCanvas);
+        var canvasBounds = PixelCanvas.Bounds;
+
+        if (canvasPosition.X >= 0 && canvasPosition.Y >= 0 &&
+            canvasPosition.X <= canvasBounds.Width && canvasPosition.Y <= canvasBounds.Height)
+        {
+            return new Point(
+                canvasPosition.X - EditorScrollViewer.Offset.X,
+                canvasPosition.Y - EditorScrollViewer.Offset.Y);
+        }
+
+        return e.GetPosition(EditorScrollViewer);
+    }
+
+    private void OnPinchGesture(object? sender, PinchEventArgs e)
+    {
+        _pinchStartZoom ??= PixelCanvas.Zoom;
+        ApplyZoom(_pinchStartZoom.Value * e.Scale, e.ScaleOrigin);
+        e.Handled = true;
+    }
+
+    private void OnPinchGestureEnded(object? sender, PinchEndedEventArgs e)
+    {
+        _pinchStartZoom = null;
+        e.Handled = true;
+    }
+
+    private void BrushSizeSliderOnValueChanged(object? sender, RangeBaseValueChangedEventArgs e)
+    {
+        var brushSize = Math.Max(1, (int)Math.Round(e.NewValue));
+        _drawingService.BrushSize = brushSize;
+        UpdateBrushSizeUi(_drawingService.BrushSize);
+    }
+
+    private void ZoomByFactor(double factor)
+    {
+        ApplyZoom(PixelCanvas.Zoom * factor);
+    }
+
+    private void ApplyZoom(double requestedZoom, Point? anchorPoint = null)
+    {
+        var image = _drawingService.CurrentImage;
+        if (image is null)
+            return;
+
+        var viewport = GetViewportSize();
+        if (viewport.Width <= 0 || viewport.Height <= 0)
+            return;
+
+        var anchor = anchorPoint ?? new Point(viewport.Width / 2, viewport.Height / 2);
+        var adjustment = _zoomController.ZoomAtPoint(
+            PixelCanvas.Zoom,
+            requestedZoom,
+            EditorScrollViewer.Offset,
+            anchor,
+            viewport,
+            new Size(image.PixelCountX, image.PixelCountY));
+
+        PixelCanvas.Zoom = adjustment.Zoom;
+        EditorScrollViewer.Offset = adjustment.Offset;
+        UpdateZoomUi();
+    }
+
+    private void ZoomToFit()
+    {
+        var image = _drawingService.CurrentImage;
+        if (image is null)
+            return;
+
+        var viewport = GetViewportSize();
+        if (viewport.Width <= 0 || viewport.Height <= 0)
+            return;
+
+        PixelCanvas.Zoom = _zoomController.CalculateFitZoom(viewport, image.PixelCountX, image.PixelCountY);
+        EditorScrollViewer.Offset = default;
+        UpdateZoomUi();
+    }
+
+    private void ScheduleZoomToFit()
+    {
+        Dispatcher.UIThread.Post(ZoomToFit, DispatcherPriority.Loaded);
+    }
+
+    private Size GetViewportSize()
+    {
+        var viewport = EditorScrollViewer.Viewport;
+        if (viewport.Width > 0 && viewport.Height > 0)
+            return viewport;
+
+        return EditorScrollViewer.Bounds.Size;
+    }
+
+    private void UpdateImageSizeUi(Image image)
+    {
+        ImageSizeTextBlock.Text = $"{image.PixelCountX} × {image.PixelCountY}";
+    }
+
+    private void UpdateBrushSizeUi(int brushSize)
+    {
+        BrushSizeTextBlock.Text = $"{brushSize} px";
+    }
+
+    private void UpdateZoomUi()
+    {
+        ZoomTextBlock.Text = $"{PixelCanvas.Zoom * 100:0} %";
+    }
+
+    private void ClampBrushSizeToImage(Image image)
+    {
+        var maxBrushSize = Math.Max(1, Math.Min(256, Math.Max(image.PixelCountX, image.PixelCountY)));
+        BrushSizeSlider.Maximum = maxBrushSize;
+        if (_drawingService.BrushSize > maxBrushSize)
+            _drawingService.BrushSize = maxBrushSize;
+
+        BrushSizeSlider.Value = _drawingService.BrushSize;
+        UpdateBrushSizeUi(_drawingService.BrushSize);
+    }
+
+    private void UpdateCommandState()
+    {
+        UndoMenuItem.IsEnabled = _drawingService.CanUndo;
+        RedoMenuItem.IsEnabled = _drawingService.CanRedo;
+    }
+
+    private void RestoreWindowSize((uint width, uint height) editorSize)
+    {
+        var desiredWidth = Math.Max(816, editorSize.width + 180);
+        var desiredHeight = Math.Max(538, editorSize.height + 120);
+        var screen = Screens.ScreenFromVisual(this);
+        if (screen is not null)
+        {
+            desiredWidth = Math.Min(desiredWidth, (uint)(screen.WorkingArea.Width * 0.95));
+            desiredHeight = Math.Min(desiredHeight, (uint)(screen.WorkingArea.Height * 0.95));
+        }
+
+        Width = desiredWidth;
+        Height = desiredHeight;
     }
 }
 

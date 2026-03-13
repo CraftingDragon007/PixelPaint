@@ -21,10 +21,11 @@ public class App : Application
 
         var services = collection.BuildServiceProvider();
 
-        var drawingService = services.GetRequiredService<IDrawingService>();
-
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            desktop.MainWindow = new EditWindow(drawingService, services);
+            desktop.MainWindow = new EditWindow(
+                services.GetRequiredService<IDrawingService>(),
+                services.GetRequiredService<IFileService>(),
+                services.GetRequiredService<EditorZoomController>());
 
         base.OnFrameworkInitializationCompleted();
     }
