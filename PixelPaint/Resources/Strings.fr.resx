@@ -17,10 +17,6 @@
   <data name="Menu_Edit_Undo" xml:space="preserve"><value>Annuler</value></data>
   <data name="Menu_Edit_Redo" xml:space="preserve"><value>Rétablir</value></data>
   <data name="Menu_Language" xml:space="preserve"><value>Langue</value></data>
-  <data name="Menu_Language_English" xml:space="preserve"><value>Anglais</value></data>
-  <data name="Menu_Language_German" xml:space="preserve"><value>Allemand</value></data>
-  <data name="Menu_Language_French" xml:space="preserve"><value>Français</value></data>
-  <data name="Menu_Language_Spanish" xml:space="preserve"><value>Espagnol</value></data>
   <data name="Color_Black" xml:space="preserve"><value>Noir</value></data>
   <data name="Color_White" xml:space="preserve"><value>Blanc</value></data>
   <data name="Color_Green" xml:space="preserve"><value>Vert</value></data>

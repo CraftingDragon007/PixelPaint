@@ -37,7 +37,7 @@ public class LocalizationServiceTests
     [Test]
     public void ResolveSupportedCulture_MapsToEnglishFallback_WhenCultureIsUnsupported()
     {
-        var culture = LocalizationService.ResolveSupportedCulture(new CultureInfo("it-IT"));
+        var culture = LocalizationService.ResolveSupportedCulture(new CultureInfo("pl-PL"));
 
         Assert.That(culture.Name, Is.EqualTo("en"));
     }
@@ -53,6 +53,7 @@ public class LocalizationServiceTests
         Assert.That(supportedCultureNames, Does.Contain("de"));
         Assert.That(supportedCultureNames, Does.Contain("fr"));
         Assert.That(supportedCultureNames, Does.Contain("es"));
+        Assert.That(supportedCultureNames, Does.Contain("it"));
     }
 
     [Test]
@@ -69,6 +70,14 @@ public class LocalizationServiceTests
         var culture = LocalizationService.ResolveSupportedCulture(new CultureInfo("es-MX"));
 
         Assert.That(culture.Name, Is.EqualTo("es"));
+    }
+
+    [Test]
+    public void ResolveSupportedCulture_MapsToItalian_WhenCultureIsItalian()
+    {
+        var culture = LocalizationService.ResolveSupportedCulture(new CultureInfo("it-IT"));
+
+        Assert.That(culture.Name, Is.EqualTo("it"));
     }
 
     [Test]
@@ -93,6 +102,14 @@ public class LocalizationServiceTests
         LocalizationService.Instance.SetCulture("es");
 
         Assert.That(LocalizationService.Instance["Menu_File"], Is.EqualTo("Archivo"));
+    }
+
+    [Test]
+    public void SetCulture_SwitchesTranslationsToItalian()
+    {
+        LocalizationService.Instance.SetCulture("it");
+
+        Assert.That(LocalizationService.Instance["Menu_Edit"], Is.EqualTo("Modifica"));
     }
 
     [Test]
