@@ -9,10 +9,10 @@ namespace PixelPaint.Services;
 public partial class FileService
 {
     /// <summary>
-    ///     Imports a PNG or BMP file as pixel art by mapping each source pixel
+    ///     Imports a PNG, JPG, JPEG or BMP file as pixel art by mapping each source pixel
     ///     directly to one art pixel in the resulting <see cref="Image"/>.
     /// </summary>
-    /// <param name="path">Absolute path to the PNG or BMP file.</param>
+    /// <param name="path">Absolute path to the PNG, JPG, JPEG or BMP file.</param>
     /// <returns>A new <see cref="Image"/> whose dimensions match the source file.</returns>
     private static unsafe Image ImportImageFromBitmap(string path)
     {

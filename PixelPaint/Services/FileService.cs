@@ -31,10 +31,10 @@ public interface IFileService
     void SaveImage(Image image, string path, (uint width, uint height) editorSize);
 
     /// <summary>
-    ///     Import a raster image (PNG, BMP) as pixel art.
+    ///     Import a raster image (PNG, JPG, JPEG, BMP) as pixel art.
     ///     Each pixel of the source image becomes one art pixel in the result.
     /// </summary>
-    /// <param name="path">Path to the PNG or BMP file</param>
+    /// <param name="path">Path to the PNG, JPG, JPEG or BMP file</param>
     /// <returns>The imported image</returns>
     /// <exception cref="ArgumentException">Thrown when the file type is not supported</exception>
     Image ImportImage(string path);
@@ -55,6 +55,8 @@ public partial class FileService : IFileService
     private const string SvgExtension = "svg";
     private const string PngExtension = "png";
     private const string BmpExtension = "bmp";
+    private const string JpgExtension = "jpg";
+    private const string JpegExtension = "jpeg";
 
     private const string UnsupportedFileTypeMessage = "Unsupported file type";
     private const string InvalidBxpFileMessage = "Not a valid .bxp file";
@@ -114,25 +116,25 @@ public partial class FileService : IFileService
     }
 
     /// <summary>
-    ///     Import a raster image (PNG, BMP) as pixel art.
+    ///     Import a raster image (PNG, JPG, JPEG, BMP) as pixel art.
     ///     Each pixel of the source image becomes one art pixel in the result.
     /// </summary>
-    /// <param name="path">Path to the PNG or BMP file</param>
+    /// <param name="path">Path to the PNG, JPG, JPEG or BMP file</param>
     /// <returns>The imported image</returns>
     /// <exception cref="ArgumentException">Thrown when the file type is not supported</exception>
     public Image ImportImage(string path) =>
         GetFileExtension(path) switch
         {
-            PngExtension or BmpExtension => ImportImageFromBitmap(path),
+            PngExtension or BmpExtension or JpgExtension or JpegExtension => ImportImageFromBitmap(path),
             _ => throw new ArgumentException(UnsupportedFileTypeMessage)
         };
 
     public IReadOnlyList<FilePickerFileType> ImportFileTypeFilter =>
     [
-        new FilePickerFileType("Raster-Bild (PNG, BMP)")
+        new FilePickerFileType("Raster-Bild (PNG, JPG, JPEG, BMP)")
         {
-            Patterns = ["*.png", "*.bmp"],
-            MimeTypes = ["image/png", "image/bmp"]
+            Patterns = ["*.png", "*.jpg", "*.jpeg", "*.bmp"],
+            MimeTypes = ["image/png", "image/jpeg", "image/bmp"]
         }
     ];
 
@@ -165,7 +167,7 @@ public partial class FileService : IFileService
     ];
 
     private static string GetFileExtension(string path) =>
-        path.Split('.').Last();
+        Path.GetExtension(path).TrimStart('.').ToLowerInvariant();
 
     private static int GetLegacyPixelSize(Image image, bool allowTolerance)
     {

@@ -365,7 +365,7 @@ public partial class EditWindow : Window
         {
             FileTypeFilter = _fileService.ImportFileTypeFilter,
             AllowMultiple = false,
-            Title = "Bild importieren (PNG, BMP)"
+            Title = "Bild importieren (PNG, JPG/JPEG, BMP)"
         });
 
         if (dialogResult.Count == 0) return;
