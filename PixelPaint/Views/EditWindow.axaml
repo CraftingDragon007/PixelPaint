@@ -84,10 +84,10 @@
             </Menu>
 
             <!-- Main Content -->
-            <Grid Margin="12" ColumnDefinitions="120,*" ColumnSpacing="16">
+            <Grid Margin="12" ColumnDefinitions="150,*" ColumnSpacing="16">
                 <ScrollViewer Grid.Column="0"
                               Margin="0,19,0,0"
-                              Width="120"
+                              Width="150"
                               HorizontalScrollBarVisibility="Disabled"
                               VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="6">
@@ -149,7 +149,8 @@
                             Maximum="256"
                             Value="1"
                             TickFrequency="1"
-                            IsSnapToTickEnabled="True" />
+                            IsSnapToTickEnabled="True"
+                            MaxWidth="120" />
                     <TextBlock Name="BrushSizeTextBlock" Text="1 px" />
 
                     <!-- Show Grid Lines Option -->
