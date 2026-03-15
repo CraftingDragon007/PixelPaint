@@ -178,7 +178,6 @@
                             <PinchGestureRecognizer />
                         </ScrollViewer.GestureRecognizers>
                         <controls:PixelCanvas Name="PixelCanvas"
-                                              Background="White"
                                               ShowGridLines="True"
                                               HorizontalAlignment="Left"
                                               VerticalAlignment="Top"

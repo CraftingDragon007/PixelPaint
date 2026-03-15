@@ -52,6 +52,7 @@ public partial class EditWindow : Window
     private void RegisterEvents()
     {
         Opened += (_, _) => ScheduleZoomToFit();
+        KeyDown += EditWindowOnKeyDown;
 
         PixelCanvas.PointerPressed += PixelCanvasOnPointerPressed;
         PixelCanvas.PointerMoved += PixelCanvasOnPointerMoved;
@@ -95,6 +96,36 @@ public partial class EditWindow : Window
         PixelCanvas.ShowGridLines = ShowGridLinesCheckBox.IsChecked ?? true;
         UpdateCommandState();
         UpdateZoomUi();
+    }
+
+    private void EditWindowOnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (!e.KeyModifiers.HasFlag(KeyModifiers.Control))
+            return;
+
+        // Support both common redo shortcuts.
+        if ((e.Key == Key.Z && e.KeyModifiers.HasFlag(KeyModifiers.Shift)) || e.Key == Key.Y)
+        {
+            if (_drawingService.CanRedo)
+            {
+                _drawingService.Redo();
+                UpdateCommandState();
+            }
+
+            e.Handled = true;
+            return;
+        }
+
+        if (e.Key != Key.Z)
+            return;
+
+        if (_drawingService.CanUndo)
+        {
+            _drawingService.Undo();
+            UpdateCommandState();
+        }
+
+        e.Handled = true;
     }
 
     // ── Save ────────────────────────────────────────────────────────────────

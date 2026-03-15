@@ -14,6 +14,8 @@ namespace PixelPaint.Controls;
 
 public sealed class PixelCanvas : Control
 {
+    private const double TransparencyTileSize = 12d;
+
     public static readonly StyledProperty<double> ZoomProperty =
         AvaloniaProperty.Register<PixelCanvas, double>(nameof(Zoom), 1d);
 
@@ -24,6 +26,8 @@ public sealed class PixelCanvas : Control
         AvaloniaProperty.Register<PixelCanvas, bool>(nameof(ShowGridLines), true);
 
     private static readonly Pen GridPen = new(new SolidColorBrush(Color.FromArgb(96, 128, 128, 128)));
+    private static readonly SolidColorBrush TransparencyLightBrush = new(Color.FromRgb(236, 236, 236));
+    private static readonly SolidColorBrush TransparencyDarkBrush = new(Color.FromRgb(208, 208, 208));
 
     private Image? _image;
     private WriteableBitmap? _bitmap;
@@ -70,6 +74,8 @@ public sealed class PixelCanvas : Control
 
         if (Background is not null)
             context.FillRectangle(Background, contentBounds);
+        else
+            DrawTransparencyBackground(context, contentBounds);
 
         if (_bitmap is null)
             return;
@@ -81,6 +87,29 @@ public sealed class PixelCanvas : Control
 
         if (ShowGridLines && Zoom >= 8)
             DrawGridLines(context, contentBounds.Size);
+    }
+
+    private static void DrawTransparencyBackground(DrawingContext context, Rect bounds)
+    {
+        if (bounds.Width <= 0 || bounds.Height <= 0)
+            return;
+
+        for (var y = 0d; y < bounds.Height; y += TransparencyTileSize)
+        {
+            var rowIndex = (int)(y / TransparencyTileSize);
+            var tileHeight = Math.Min(TransparencyTileSize, bounds.Height - y);
+
+            for (var x = 0d; x < bounds.Width; x += TransparencyTileSize)
+            {
+                var columnIndex = (int)(x / TransparencyTileSize);
+                var tileWidth = Math.Min(TransparencyTileSize, bounds.Width - x);
+                var brush = (rowIndex + columnIndex) % 2 == 0
+                    ? TransparencyLightBrush
+                    : TransparencyDarkBrush;
+
+                context.FillRectangle(brush, new Rect(x, y, tileWidth, tileHeight));
+            }
+        }
     }
 
     protected override Size MeasureOverride(Size availableSize)
