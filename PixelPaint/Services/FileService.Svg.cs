@@ -11,6 +11,12 @@ namespace PixelPaint.Services;
 
 public partial class FileService
 {
+    public (long estimatedSizeBytes, bool shouldWarn) GetSvgSaveWarning(Image image)
+    {
+        var estimatedSizeBytes = EstimateSvgFileSizeBytes(image);
+        return (estimatedSizeBytes, estimatedSizeBytes >= SvgLargeFileWarningThresholdBytes);
+    }
+
     /// <summary>
     ///     Save an image as an SVG file. Each pixel becomes a &lt;rect&gt; in viewBox coordinates.
     ///     The display size is scaled by 20 so the file looks good in browsers.
@@ -101,6 +107,26 @@ public partial class FileService
         }
 
         return rects;
+    }
+
+    private static long EstimateSvgFileSizeBytes(Image image)
+    {
+        // Rough estimate of UTF-8 output size written by XDocument for one <rect> per pixel.
+        const int documentOverheadBytes = 160;
+        const int bytesPerOpaqueRect = 48;
+        const int bytesPerTransparentOpacityAttribute = 24;
+
+        var totalPixels = (long)image.PixelCountX * image.PixelCountY;
+        long transparentPixelCount = 0;
+
+        for (var y = 0; y < image.PixelCountY; y++)
+        for (var x = 0; x < image.PixelCountX; x++)
+            if (image.Pixels[x, y].A < 255)
+                transparentPixelCount++;
+
+        return documentOverheadBytes
+               + totalPixels * bytesPerOpaqueRect
+               + transparentPixelCount * bytesPerTransparentOpacityAttribute;
     }
 
     private static SvgRectangle ParseSvgRectangle(XElement element)

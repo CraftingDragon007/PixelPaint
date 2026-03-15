@@ -69,6 +69,7 @@
             <Menu DockPanel.Dock="Top">
                 <MenuItem Header="Datei">
                     <MenuItem Name="OpenMenuItem" Header="Öffnen" />
+                    <MenuItem Name="ImportMenuItem" Header="Importieren (PNG, BMP)..." />
                     <MenuItem Name="SaveMenuItem" Header="Speichern" />
                     <MenuItem Name="SaveAsMenuItem" Header="Speichern unter..." />
                     <MenuItem Name="ResetMenuItem" Header="Reset" />

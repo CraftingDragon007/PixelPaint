@@ -12,6 +12,8 @@ public interface IFileService
 {
     IReadOnlyList<FilePickerFileType> FileTypeFilter { get; }
 
+    IReadOnlyList<FilePickerFileType> ImportFileTypeFilter { get; }
+
     /// <summary>
     ///     Load an image from a file supported by PixelPaint
     /// </summary>
@@ -27,6 +29,22 @@ public interface IFileService
     /// <param name="path">The path to save the image to</param>
     /// <param name="editorSize">The size of the editor</param>
     void SaveImage(Image image, string path, (uint width, uint height) editorSize);
+
+    /// <summary>
+    ///     Import a raster image (PNG, BMP) as pixel art.
+    ///     Each pixel of the source image becomes one art pixel in the result.
+    /// </summary>
+    /// <param name="path">Path to the PNG or BMP file</param>
+    /// <returns>The imported image</returns>
+    /// <exception cref="ArgumentException">Thrown when the file type is not supported</exception>
+    Image ImportImage(string path);
+
+    /// <summary>
+    ///     Estimate SVG file size for the provided image and indicate whether a warning should be shown.
+    /// </summary>
+    /// <param name="image">Image to be saved as SVG</param>
+    /// <returns>Estimated size in bytes and whether the estimate exceeds the warning threshold</returns>
+    (long estimatedSizeBytes, bool shouldWarn) GetSvgSaveWarning(Image image);
 }
 
 public partial class FileService : IFileService
@@ -35,6 +53,8 @@ public partial class FileService : IFileService
     private const string BxpExtension = "bxp";
     private const string PxpExtension = "pxp";
     private const string SvgExtension = "svg";
+    private const string PngExtension = "png";
+    private const string BmpExtension = "bmp";
 
     private const string UnsupportedFileTypeMessage = "Unsupported file type";
     private const string InvalidBxpFileMessage = "Not a valid .bxp file";
@@ -43,6 +63,7 @@ public partial class FileService : IFileService
     private const int LegacyPanelHeight = 319;
     private const int LegacyPanelWidth = 653;
     private const int SvgPreviewScale = 20;
+    private const long SvgLargeFileWarningThresholdBytes = 5L * 1024 * 1024;
     private const string SvgNamespace = "http://www.w3.org/2000/svg";
     private static readonly byte[] AxpMagicHeader = "PPAF"u8.ToArray();
     private static readonly byte[] BxpHeader = "PixelPaint"u8.ToArray();
@@ -91,6 +112,29 @@ public partial class FileService : IFileService
             _ => throw new ArgumentException(UnsupportedFileTypeMessage)
         };
     }
+
+    /// <summary>
+    ///     Import a raster image (PNG, BMP) as pixel art.
+    ///     Each pixel of the source image becomes one art pixel in the result.
+    /// </summary>
+    /// <param name="path">Path to the PNG or BMP file</param>
+    /// <returns>The imported image</returns>
+    /// <exception cref="ArgumentException">Thrown when the file type is not supported</exception>
+    public Image ImportImage(string path) =>
+        GetFileExtension(path) switch
+        {
+            PngExtension or BmpExtension => ImportImageFromBitmap(path),
+            _ => throw new ArgumentException(UnsupportedFileTypeMessage)
+        };
+
+    public IReadOnlyList<FilePickerFileType> ImportFileTypeFilter =>
+    [
+        new FilePickerFileType("Raster-Bild (PNG, BMP)")
+        {
+            Patterns = ["*.png", "*.bmp"],
+            MimeTypes = ["image/png", "image/bmp"]
+        }
+    ];
 
     public IReadOnlyList<FilePickerFileType> FileTypeFilter =>
     [

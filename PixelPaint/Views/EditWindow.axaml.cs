@@ -68,6 +68,7 @@ public partial class EditWindow : Window
         ShowGridLinesCheckBox.IsCheckedChanged += ShowGridLinesCheckBoxOnIsCheckedChanged;
         BrushSizeSlider.ValueChanged += BrushSizeSliderOnValueChanged;
         OpenMenuItem.Click += OpenMenuItemOnClick;
+        ImportMenuItem.Click += ImportMenuItemOnClick;
         SaveMenuItem.Click += SaveMenuItemOnClick;
         SaveAsMenuItem.Click += SaveAsMenuItemOnClick;
         ResetMenuItem.Click += ResetMenuItemOnClick;
@@ -110,6 +111,9 @@ public partial class EditWindow : Window
 
         if (_currentFilePath is not null)
         {
+            if (!await ConfirmLargeSvgSaveAsync(image, _currentFilePath))
+                return;
+
             _fileService.SaveImage(image, _currentFilePath, GetEditorSize());
             return;
         }
@@ -140,6 +144,10 @@ public partial class EditWindow : Window
         });
         if (dialogResult is null) return;
         var localPath = dialogResult.TryGetLocalPath() ?? dialogResult.Path.ToString();
+
+        if (!await ConfirmLargeSvgSaveAsync(image, localPath))
+            return;
+
         _fileService.SaveImage(image, localPath, GetEditorSize());
         _currentFilePath = localPath;
     }
@@ -214,6 +222,9 @@ public partial class EditWindow : Window
 
         if (path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
         {
+            if (!await ConfirmLargeSvgSaveAsync(image, path))
+                return;
+
             _fileService.SaveImage(image, path, GetEditorSize());
         }
         else
@@ -245,6 +256,27 @@ public partial class EditWindow : Window
         }
 
         bitmap.Save(path);
+    }
+
+    private async Task<bool> ConfirmLargeSvgSaveAsync(Image image, string path)
+    {
+        if (!path.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        var (estimatedSizeBytes, shouldWarn) = _fileService.GetSvgSaveWarning(image);
+        if (!shouldWarn)
+            return true;
+
+        var estimatedSizeMb = estimatedSizeBytes / (1024d * 1024d);
+        var dialog = MessageBoxManager.GetMessageBoxStandard(
+            "Grosse SVG-Datei",
+            $"Dieses Bild wird als SVG voraussichtlich etwa {estimatedSizeMb:0.0} MB gross.\n" +
+            "Das Speichern kann länger dauern und die Datei kann unhandlich werden.\n\n" +
+            "Trotzdem als SVG speichern?",
+            MsBox.Avalonia.Enums.ButtonEnum.YesNo);
+
+        var result = await dialog.ShowAsPopupAsync(this);
+        return result == MsBox.Avalonia.Enums.ButtonResult.Yes;
     }
 
     // ── Undo / Redo ─────────────────────────────────────────────────────────
@@ -293,6 +325,35 @@ public partial class EditWindow : Window
         _fitZoomAfterRefresh = true;
         _drawingService.LoadImage(image);
         _currentFilePath = localPath;
+    }
+
+    private async void ImportMenuItemOnClick(object? sender, RoutedEventArgs e)
+    {
+        var dialogResult = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            FileTypeFilter = _fileService.ImportFileTypeFilter,
+            AllowMultiple = false,
+            Title = "Bild importieren (PNG, BMP)"
+        });
+
+        if (dialogResult.Count == 0) return;
+
+        var file = dialogResult[0];
+        var localPath = file.TryGetLocalPath() ?? file.Path.ToString();
+
+        try
+        {
+            var image = _fileService.ImportImage(localPath);
+            _fitZoomAfterRefresh = true;
+            _drawingService.LoadImage(image);
+            _currentFilePath = null;
+        }
+        catch (Exception ex)
+        {
+            await MessageBoxManager
+                .GetMessageBoxStandard("Fehler beim Importieren", ex.Message)
+                .ShowAsPopupAsync(this);
+        }
     }
 
     private void OnColorRadioButtonIsCheckedChanged(object? sender, RoutedEventArgs e)
