@@ -153,10 +153,17 @@ public class FileServiceAxpTests
     [TestCase("image1.jpg")]
     [TestCase("image2.png")]
     [TestCase("image3.jpg")]
+    [TestCase("image_depth_1bit.png")]
+    [TestCase("image_depth_4bit_palette.png")]
+    [TestCase("image_depth_8bit_gray.png")]
+    [TestCase("image_depth_8bit_palette.png")]
+    [TestCase("image_depth_16bit_gray.png")]
+    [TestCase("image_depth_24bit.bmp")]
+    [TestCase("image_depth_32bit_rgba.png")]
     public void Axp_ImportedBitmapFromRepository_Roundtrips(string fileName)
     {
-        var sourcePath = Path.Combine(GetRepositoryRoot(), fileName);
-        Assume.That(File.Exists(sourcePath), $"Repository image '{fileName}' was not found at '{sourcePath}'.");
+        var sourcePath = GetTestImagePath(fileName);
+        Assert.That(File.Exists(sourcePath), $"Test image '{fileName}' was not found at '{sourcePath}'.");
 
         var importedImage = _fileService.ImportImage(sourcePath);
         var path = GetTempFilePath(Path.GetFileNameWithoutExtension(fileName) + ".axp");
@@ -168,10 +175,11 @@ public class FileServiceAxpTests
         Assert.That(result.editorSize, Is.EqualTo((640u, 480u)));
     }
 
+
     private string GetTempFilePath(string fileName) => Path.Combine(_tempDirectory, fileName);
 
-    private static string GetRepositoryRoot() =>
-        Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../"));
+    private static string GetTestImagePath(string fileName) =>
+        Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData", fileName);
 
     private static Image CreateImage(int width, int height, Func<int, int, Color> colorFactory)
     {

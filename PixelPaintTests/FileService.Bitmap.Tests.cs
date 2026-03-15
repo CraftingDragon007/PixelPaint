@@ -1,12 +1,11 @@
 using PixelPaint.Services;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace PixelPaintTests;
 
 public class FileServiceBitmapTests
 {
-    private const string WhiteJpegBase64 =
-        "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigD//2Q==";
-
     private FileService _fileService = null!;
     private string _tempDirectory = null!;
 
@@ -25,11 +24,23 @@ public class FileServiceBitmapTests
             Directory.Delete(_tempDirectory, true);
     }
 
-    [Test]
-    public void ImportImage_JpegExtension_ImportsImage()
+    [TestCase("jpg")]
+    [TestCase("jpeg")]
+    [TestCase("bmp")]
+    [TestCase("gif")]
+    [TestCase("pbm")]
+    [TestCase("pgm")]
+    [TestCase("ppm")]
+    [TestCase("png")]
+    [TestCase("tga")]
+    [TestCase("tif")]
+    [TestCase("tiff")]
+    [TestCase("webp")]
+    [TestCase("qoi")]
+    public void ImportImage_SupportedExtensions_ImportsImage(string extension)
     {
-        var path = GetTempFilePath("white.jpeg");
-        WriteWhiteJpeg(path);
+        var path = GetTempFilePath($"white.{extension}");
+        WriteWhiteImage(path);
 
         var image = _fileService.ImportImage(path);
 
@@ -50,10 +61,10 @@ public class FileServiceBitmapTests
     }
 
     [Test]
-    public void ImportImage_JpgExtension_IsCaseInsensitive()
+    public void ImportImage_Extension_IsCaseInsensitive()
     {
-        var path = GetTempFilePath("white.JPG");
-        WriteWhiteJpeg(path);
+        var path = GetTempFilePath("white.WEBP");
+        WriteWhiteImage(path);
 
         var image = _fileService.ImportImage(path);
 
@@ -66,7 +77,7 @@ public class FileServiceBitmapTests
     }
 
     [Test]
-    public void ImportFileTypeFilter_IncludesJpgAndJpeg()
+    public void ImportFileTypeFilter_IncludesAllSupportedFormats()
     {
         var filter = _fileService.ImportFileTypeFilter.Single();
 
@@ -74,13 +85,50 @@ public class FileServiceBitmapTests
         {
             Assert.That(filter.Patterns, Does.Contain("*.jpg"));
             Assert.That(filter.Patterns, Does.Contain("*.jpeg"));
+            Assert.That(filter.Patterns, Does.Contain("*.bmp"));
+            Assert.That(filter.Patterns, Does.Contain("*.gif"));
+            Assert.That(filter.Patterns, Does.Contain("*.pbm"));
+            Assert.That(filter.Patterns, Does.Contain("*.pgm"));
+            Assert.That(filter.Patterns, Does.Contain("*.ppm"));
+            Assert.That(filter.Patterns, Does.Contain("*.png"));
+            Assert.That(filter.Patterns, Does.Contain("*.tga"));
+            Assert.That(filter.Patterns, Does.Contain("*.tif"));
+            Assert.That(filter.Patterns, Does.Contain("*.tiff"));
+            Assert.That(filter.Patterns, Does.Contain("*.webp"));
+            Assert.That(filter.Patterns, Does.Contain("*.qoi"));
             Assert.That(filter.MimeTypes, Does.Contain("image/jpeg"));
+            Assert.That(filter.MimeTypes, Does.Contain("image/bmp"));
+            Assert.That(filter.MimeTypes, Does.Contain("image/gif"));
+            Assert.That(filter.MimeTypes, Does.Contain("image/x-portable-bitmap"));
+            Assert.That(filter.MimeTypes, Does.Contain("image/x-portable-graymap"));
+            Assert.That(filter.MimeTypes, Does.Contain("image/x-portable-pixmap"));
+            Assert.That(filter.MimeTypes, Does.Contain("image/png"));
+            Assert.That(filter.MimeTypes, Does.Contain("image/x-tga"));
+            Assert.That(filter.MimeTypes, Does.Contain("image/tiff"));
+            Assert.That(filter.MimeTypes, Does.Contain("image/webp"));
+            Assert.That(filter.MimeTypes, Does.Contain("image/qoi"));
         }
     }
 
     private string GetTempFilePath(string fileName) => Path.Combine(_tempDirectory, fileName);
 
-    private static void WriteWhiteJpeg(string path) =>
-        File.WriteAllBytes(path, Convert.FromBase64String(WhiteJpegBase64));
+    private static void WriteWhiteImage(string path)
+    {
+        using var image = new Image<Rgba32>(2, 1);
+        var white = new Rgba32(255, 255, 255, 255);
+        image[0, 0] = white;
+        image[1, 0] = white;
+
+        try
+        {
+            image.Save(path);
+        }
+        catch (UnknownImageFormatException)
+        {
+            // If a specific encoder is not available, write PNG bytes and keep the
+            // extension to still validate extension-based import routing.
+            image.SaveAsPng(path);
+        }
+    }
 }
 

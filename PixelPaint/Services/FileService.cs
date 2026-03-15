@@ -31,10 +31,10 @@ public interface IFileService
     void SaveImage(Image image, string path, (uint width, uint height) editorSize);
 
     /// <summary>
-    ///     Import a raster image (PNG, JPG, JPEG, BMP) as pixel art.
+    ///     Import a raster image (JPEG, BMP, GIF, PBM, PGM, PPM, PNG, TGA, TIFF, WebP, QOI) as pixel art.
     ///     Each pixel of the source image becomes one art pixel in the result.
     /// </summary>
-    /// <param name="path">Path to the PNG, JPG, JPEG or BMP file</param>
+    /// <param name="path">Path to a supported raster image file</param>
     /// <returns>The imported image</returns>
     /// <exception cref="ArgumentException">Thrown when the file type is not supported</exception>
     Image ImportImage(string path);
@@ -57,6 +57,15 @@ public partial class FileService : IFileService
     private const string BmpExtension = "bmp";
     private const string JpgExtension = "jpg";
     private const string JpegExtension = "jpeg";
+    private const string GifExtension = "gif";
+    private const string PbmExtension = "pbm";
+    private const string PgmExtension = "pgm";
+    private const string PpmExtension = "ppm";
+    private const string TgaExtension = "tga";
+    private const string TifExtension = "tif";
+    private const string TiffExtension = "tiff";
+    private const string WebpExtension = "webp";
+    private const string QoiExtension = "qoi";
 
     private const string UnsupportedFileTypeMessage = "Unsupported file type";
     private const string InvalidBxpFileMessage = "Not a valid .bxp file";
@@ -116,16 +125,19 @@ public partial class FileService : IFileService
     }
 
     /// <summary>
-    ///     Import a raster image (PNG, JPG, JPEG, BMP) as pixel art.
+    ///     Import a raster image (JPEG, BMP, GIF, PBM, PGM, PPM, PNG, TGA, TIFF, WebP, QOI) as pixel art.
     ///     Each pixel of the source image becomes one art pixel in the result.
     /// </summary>
-    /// <param name="path">Path to the PNG, JPG, JPEG or BMP file</param>
+    /// <param name="path">Path to a supported raster image file</param>
     /// <returns>The imported image</returns>
     /// <exception cref="ArgumentException">Thrown when the file type is not supported</exception>
     public Image ImportImage(string path) =>
         GetFileExtension(path) switch
         {
-            PngExtension or BmpExtension or JpgExtension or JpegExtension => ImportImageFromBitmap(path),
+            PngExtension or BmpExtension or JpgExtension or JpegExtension or GifExtension or PbmExtension or
+                PgmExtension or PpmExtension or
+                TgaExtension or TifExtension or TiffExtension or WebpExtension or QoiExtension =>
+                ImportImageFromBitmap(path),
             _ => throw new ArgumentException(UnsupportedFileTypeMessage)
         };
 
@@ -133,8 +145,8 @@ public partial class FileService : IFileService
     [
         new FilePickerFileType(LocalizationService.Instance["FileType_RasterImage"])
         {
-            Patterns = ["*.png", "*.jpg", "*.jpeg", "*.bmp"],
-            MimeTypes = ["image/png", "image/jpeg", "image/bmp"]
+            Patterns = ["*.jpg", "*.jpeg", "*.bmp", "*.gif", "*.pbm", "*.pgm", "*.ppm", "*.png", "*.tga", "*.tif", "*.tiff", "*.webp", "*.qoi"],
+            MimeTypes = ["image/jpeg", "image/bmp", "image/gif", "image/x-portable-bitmap", "image/x-portable-graymap", "image/x-portable-pixmap", "image/png", "image/x-tga", "image/tiff", "image/webp", "image/qoi"]
         }
     ];
 

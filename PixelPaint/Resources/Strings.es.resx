@@ -7,7 +7,7 @@
   <data name="App_Title" xml:space="preserve"><value>PixelPaint</value></data>
   <data name="Menu_File" xml:space="preserve"><value>Archivo</value></data>
   <data name="Menu_File_Open" xml:space="preserve"><value>Abrir</value></data>
-  <data name="Menu_File_Import" xml:space="preserve"><value>Importar (PNG, JPG/JPEG, BMP)...</value></data>
+  <data name="Menu_File_Import" xml:space="preserve"><value>Importar (JPEG, BMP, GIF, PBM, PGM, PPM, PNG, TGA, TIFF, WebP, QOI)...</value></data>
   <data name="Menu_File_Save" xml:space="preserve"><value>Guardar</value></data>
   <data name="Menu_File_SaveAs" xml:space="preserve"><value>Guardar como...</value></data>
   <data name="Menu_File_Reset" xml:space="preserve"><value>Restablecer</value></data>
@@ -44,7 +44,7 @@
   <data name="Error_NoImageToExport" xml:space="preserve"><value>No hay ninguna imagen para exportar.</value></data>
   <data name="Dialog_SaveImage_Title" xml:space="preserve"><value>Guardar imagen</value></data>
   <data name="Dialog_OpenImage_Title" xml:space="preserve"><value>Abrir imagen</value></data>
-  <data name="Dialog_ImportImage_Title" xml:space="preserve"><value>Importar imagen (PNG, JPG/JPEG, BMP)</value></data>
+  <data name="Dialog_ImportImage_Title" xml:space="preserve"><value>Importar imagen (JPEG, BMP, GIF, PBM, PGM, PPM, PNG, TGA, TIFF, WebP, QOI)</value></data>
   <data name="Error_ImportFailed_Title" xml:space="preserve"><value>Error al importar</value></data>
   <data name="Dialog_Reset_Title" xml:space="preserve"><value>Restablecer</value></data>
   <data name="Dialog_Reset_Message" xml:space="preserve"><value>¿Realmente quieres restablecer la imagen? Se perderán todos los cambios.</value></data>
@@ -56,7 +56,7 @@ Guardar puede tardar más y el archivo puede resultar difícil de manejar.
   <data name="Format_ImageSize" xml:space="preserve"><value>{0} x {1}</value></data>
   <data name="Format_BrushSize" xml:space="preserve"><value>{0} px</value></data>
   <data name="Format_Zoom" xml:space="preserve"><value>{0:0} %</value></data>
-  <data name="FileType_RasterImage" xml:space="preserve"><value>Imagen ráster (PNG, JPG, JPEG, BMP)</value></data>
+  <data name="FileType_RasterImage" xml:space="preserve"><value>Imagen ráster (JPEG, BMP, GIF, PBM, PGM, PPM, PNG, TGA, TIFF, WebP, QOI)</value></data>
   <data name="FileType_AdvancedPixelPaint" xml:space="preserve"><value>Advanced Pixel Paint File</value></data>
   <data name="FileType_SvgImage" xml:space="preserve"><value>Imagen SVG</value></data>
   <data name="FileType_BetterPixelPaint" xml:space="preserve"><value>Better Pixel Paint File</value></data>
