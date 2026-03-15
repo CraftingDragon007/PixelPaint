@@ -352,8 +352,8 @@ public partial class EditWindow : Window
         var file = dialogResult[0];
 
         var localPath = file.TryGetLocalPath() ?? file.Path.ToString();
-        var (image, editorSize) = _fileService.LoadImage(localPath);
-        RestoreWindowSize(editorSize);
+        var (image, _) = _fileService.LoadImage(localPath);
+        RestoreWindowSizeForImage(image);
         _fitZoomAfterRefresh = true;
         _drawingService.LoadImage(image);
         _currentFilePath = localPath;
@@ -376,6 +376,7 @@ public partial class EditWindow : Window
         try
         {
             var image = _fileService.ImportImage(localPath);
+            RestoreWindowSizeForImage(image);
             _fitZoomAfterRefresh = true;
             _drawingService.LoadImage(image);
             _currentFilePath = null;
@@ -628,15 +629,31 @@ public partial class EditWindow : Window
         RedoMenuItem.IsEnabled = _drawingService.CanRedo;
     }
 
-    private void RestoreWindowSize((uint width, uint height) editorSize)
+    private void RestoreWindowSizeForImage(Image image)
     {
-        var desiredWidth = Math.Max(816, editorSize.width + 180);
-        var desiredHeight = Math.Max(538, editorSize.height + 120);
+        const double minimumWindowWidth = 816;
+        const double minimumWindowHeight = 538;
+        const double horizontalChromePadding = 180;
+        const double verticalChromePadding = 120;
+        const double screenClampFactor = 0.90;
+
+        var minimumViewportWidth = Math.Max(1, minimumWindowWidth - horizontalChromePadding);
+        var minimumViewportHeight = Math.Max(1, minimumWindowHeight - verticalChromePadding);
+        var currentViewport = GetViewportSize();
+        var maximumViewportWidth = currentViewport.Width > 0 ? currentViewport.Width : image.PixelCountX;
+        var maximumViewportHeight = currentViewport.Height > 0 ? currentViewport.Height : image.PixelCountY;
+
+        // Grow only up to the current viewport to avoid near-fullscreen jumps on very large images.
+        var targetViewportWidth = Math.Clamp(image.PixelCountX, minimumViewportWidth, maximumViewportWidth);
+        var targetViewportHeight = Math.Clamp(image.PixelCountY, minimumViewportHeight, maximumViewportHeight);
+
+        var desiredWidth = targetViewportWidth + horizontalChromePadding;
+        var desiredHeight = targetViewportHeight + verticalChromePadding;
         var screen = Screens.ScreenFromVisual(this);
         if (screen is not null)
         {
-            desiredWidth = Math.Min(desiredWidth, (uint)(screen.WorkingArea.Width * 0.95));
-            desiredHeight = Math.Min(desiredHeight, (uint)(screen.WorkingArea.Height * 0.95));
+            desiredWidth = Math.Min(desiredWidth, screen.WorkingArea.Width * screenClampFactor);
+            desiredHeight = Math.Min(desiredHeight, screen.WorkingArea.Height * screenClampFactor);
         }
 
         Width = desiredWidth;

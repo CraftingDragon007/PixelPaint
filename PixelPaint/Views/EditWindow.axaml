@@ -7,6 +7,7 @@
         x:Class="PixelPaint.Views.EditWindow"
         Title="PixelPaint"
         Width="816" Height="538"
+        MinWidth="640" MinHeight="420"
         Icon="/Assets/Icon.ico">
 
     <Window.Styles>
@@ -84,7 +85,12 @@
 
             <!-- Main Content -->
             <Grid Margin="12" ColumnDefinitions="120,*" ColumnSpacing="16">
-                <StackPanel Grid.Column="0" Margin="0,19,0,0" Width="120" Spacing="6">
+                <ScrollViewer Grid.Column="0"
+                              Margin="0,19,0,0"
+                              Width="120"
+                              HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="6">
                     <!-- Color Radio Buttons -->
                     <RadioButton GroupName="ColorSelector" Content="Schwarz"
                                  IsChecked="True"
@@ -160,7 +166,8 @@
                     <RadioButton GroupName="ToolSelector" Content="Pipette"
                                  IsCheckedChanged="OnPipetteToolRadioButtonIsCheckedChanged" />
 
-                </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
 
                 <!-- Image Panel -->
                 <Border Grid.Column="1"
