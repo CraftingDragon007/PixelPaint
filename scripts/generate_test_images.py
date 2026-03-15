@@ -92,6 +92,38 @@ def save_image(target: Path, image: Image.Image, png_bits: int | None = None) ->
         image.save(target, format="BMP")
         return
 
+    if suffix == ".gif":
+        image.convert("P", palette=Image.Palette.ADAPTIVE, colors=256).save(target, format="GIF")
+        return
+
+    if suffix == ".pbm":
+        image.convert("1").save(target, format="PPM")
+        return
+
+    if suffix == ".pgm":
+        image.convert("L").save(target, format="PPM")
+        return
+
+    if suffix == ".ppm":
+        image.convert("RGB").save(target, format="PPM")
+        return
+
+    if suffix == ".tga":
+        image.convert("RGB").save(target, format="TGA")
+        return
+
+    if suffix in {".tif", ".tiff"}:
+        image.convert("RGB").save(target, format="TIFF")
+        return
+
+    if suffix == ".webp":
+        image.convert("RGB").save(target, format="WEBP", quality=95, method=6)
+        return
+
+    if suffix == ".qoi":
+        image.convert("RGBA").save(target, format="QOI")
+        return
+
     if suffix == ".png":
         save_kwargs = {"format": "PNG", "optimize": True}
         if png_bits is not None:
@@ -104,6 +136,8 @@ def save_image(target: Path, image: Image.Image, png_bits: int | None = None) ->
 
 def main() -> None:
     repo_root = Path(__file__).resolve().parents[1]
+    output_dir = repo_root / "PixelPaintTests" / "TestData"
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     outputs = [
         ("image1.jpg", build_colorful_rgb(2400, 1600, 1), None),
@@ -116,10 +150,18 @@ def main() -> None:
         ("image_depth_16bit_gray.png", build_grayscale_16bit(1400, 1000), None),
         ("image_depth_24bit.bmp", build_colorful_rgb(1800, 1200, 5), None),
         ("image_depth_32bit_rgba.png", build_rgba(1920, 1080, 7), None),
+        ("image_format_gif.gif", build_colorful_rgb(1920, 1080, 8), None),
+        ("image_format_pbm.pbm", build_colorful_rgb(1920, 1080, 9), None),
+        ("image_format_pgm.pgm", build_colorful_rgb(1920, 1080, 10), None),
+        ("image_format_ppm.ppm", build_colorful_rgb(1920, 1080, 11), None),
+        ("image_format_tga.tga", build_colorful_rgb(1920, 1080, 12), None),
+        ("image_format_tiff.tiff", build_colorful_rgb(1920, 1080, 13), None),
+        ("image_format_webp.webp", build_colorful_rgb(1920, 1080, 14), None),
+        ("image_format_qoi.qoi", build_rgba(1920, 1080, 15), None),
     ]
 
     for file_name, image, png_bits in outputs:
-        target = repo_root / file_name
+        target = output_dir / file_name
         save_image(target, image, png_bits)
         width, height = image.size
         print(f"wrote {target} ({width}x{height})")

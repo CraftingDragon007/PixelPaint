@@ -1,11 +1,11 @@
 using PixelPaint.Services;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace PixelPaintTests;
 
 public class FileServiceBitmapTests
 {
+    private static readonly string TestDataDirectory = Path.Combine(TestContext.CurrentContext.TestDirectory, "TestData");
+
     private FileService _fileService = null!;
     private string _tempDirectory = null!;
 
@@ -24,55 +24,62 @@ public class FileServiceBitmapTests
             Directory.Delete(_tempDirectory, true);
     }
 
-    [TestCase("jpg")]
-    [TestCase("jpeg")]
-    [TestCase("bmp")]
-    [TestCase("gif")]
-    [TestCase("pbm")]
-    [TestCase("pgm")]
-    [TestCase("ppm")]
-    [TestCase("png")]
-    [TestCase("tga")]
-    [TestCase("tif")]
-    [TestCase("tiff")]
-    [TestCase("webp")]
-    [TestCase("qoi")]
-    public void ImportImage_SupportedExtensions_ImportsImage(string extension)
+    [TestCase("image1.jpg", 2400, 1600)]
+    [TestCase("image_depth_24bit.bmp", 1800, 1200)]
+    [TestCase("image_depth_32bit_rgba.png", 1920, 1080)]
+    [TestCase("image_format_gif.gif", 1920, 1080)]
+    [TestCase("image_format_pbm.pbm", 1920, 1080)]
+    [TestCase("image_format_pgm.pgm", 1920, 1080)]
+    [TestCase("image_format_ppm.ppm", 1920, 1080)]
+    [TestCase("image_format_tga.tga", 1920, 1080)]
+    [TestCase("image_format_tiff.tiff", 1920, 1080)]
+    [TestCase("image_format_webp.webp", 1920, 1080)]
+    [TestCase("image_format_qoi.qoi", 1920, 1080)]
+    public void ImportImage_SupportedFormats_ImportsImage(string fileName, int expectedWidth, int expectedHeight)
     {
-        var path = GetTempFilePath($"white.{extension}");
-        WriteWhiteImage(path);
+        var path = GetTestDataPath(fileName);
 
         var image = _fileService.ImportImage(path);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(image.PixelCountX, Is.EqualTo(2));
-            Assert.That(image.PixelCountY, Is.EqualTo(1));
-            Assert.That(image.PixelCount, Is.EqualTo(2));
-            Assert.That((int)image.Pixels[0, 0].A, Is.EqualTo(255));
-            Assert.That((int)image.Pixels[1, 0].A, Is.EqualTo(255));
-            Assert.That((int)image.Pixels[0, 0].R, Is.GreaterThanOrEqualTo(240));
-            Assert.That((int)image.Pixels[0, 0].G, Is.GreaterThanOrEqualTo(240));
-            Assert.That((int)image.Pixels[0, 0].B, Is.GreaterThanOrEqualTo(240));
-            Assert.That((int)image.Pixels[1, 0].R, Is.GreaterThanOrEqualTo(240));
-            Assert.That((int)image.Pixels[1, 0].G, Is.GreaterThanOrEqualTo(240));
-            Assert.That((int)image.Pixels[1, 0].B, Is.GreaterThanOrEqualTo(240));
+            Assert.That(image.PixelCountX, Is.EqualTo(expectedWidth));
+            Assert.That(image.PixelCountY, Is.EqualTo(expectedHeight));
+            Assert.That(image.PixelCount, Is.EqualTo(expectedWidth * expectedHeight));
         }
     }
 
     [Test]
     public void ImportImage_Extension_IsCaseInsensitive()
     {
-        var path = GetTempFilePath("white.WEBP");
-        WriteWhiteImage(path);
+        var sourcePath = GetTestDataPath("image_format_webp.webp");
+        var path = GetTempFilePath("copy.WEBP");
+        File.Copy(sourcePath, path, overwrite: true);
 
         var image = _fileService.ImportImage(path);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(image.PixelCountX, Is.EqualTo(2));
-            Assert.That(image.PixelCountY, Is.EqualTo(1));
-            Assert.That(image.PixelCount, Is.EqualTo(2));
+            Assert.That(image.PixelCountX, Is.EqualTo(1920));
+            Assert.That(image.PixelCountY, Is.EqualTo(1080));
+            Assert.That(image.PixelCount, Is.EqualTo(1920 * 1080));
+        }
+    }
+
+    [Test]
+    public void ImportImage_JpegExtension_ImportsImage()
+    {
+        var sourcePath = GetTestDataPath("image1.jpg");
+        var path = GetTempFilePath("image1.jpeg");
+        File.Copy(sourcePath, path, overwrite: true);
+
+        var image = _fileService.ImportImage(path);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(image.PixelCountX, Is.EqualTo(2400));
+            Assert.That(image.PixelCountY, Is.EqualTo(1600));
+            Assert.That(image.PixelCount, Is.EqualTo(2400 * 1600));
         }
     }
 
@@ -110,25 +117,17 @@ public class FileServiceBitmapTests
         }
     }
 
+    [Test]
+    public void ImportImage_UnsupportedExtension_ThrowsArgumentException()
+    {
+        var path = GetTempFilePath("unsupported.txt");
+        File.WriteAllText(path, "not an image");
+
+        Assert.That(() => _fileService.ImportImage(path), Throws.TypeOf<ArgumentException>());
+    }
+
     private string GetTempFilePath(string fileName) => Path.Combine(_tempDirectory, fileName);
 
-    private static void WriteWhiteImage(string path)
-    {
-        using var image = new Image<Rgba32>(2, 1);
-        var white = new Rgba32(255, 255, 255, 255);
-        image[0, 0] = white;
-        image[1, 0] = white;
-
-        try
-        {
-            image.Save(path);
-        }
-        catch (UnknownImageFormatException)
-        {
-            // If a specific encoder is not available, write PNG bytes and keep the
-            // extension to still validate extension-based import routing.
-            image.SaveAsPng(path);
-        }
-    }
+    private static string GetTestDataPath(string fileName) => Path.Combine(TestDataDirectory, fileName);
 }
 

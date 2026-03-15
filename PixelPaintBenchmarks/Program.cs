@@ -4,8 +4,6 @@ using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using PixelPaint;
 using PixelPaint.Services;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 
 BenchmarkRunner.Run<BitmapImportBenchmarks>();
@@ -24,8 +22,6 @@ public class BitmapImportBenchmarks
     // ── paths resolved relative to the benchmark binary ──────────────────────
     private static readonly string TestDataDir =
         Path.Combine(AppContext.BaseDirectory, "TestData");
-    private static readonly string GeneratedDataDir =
-        Path.Combine(AppContext.BaseDirectory, "GeneratedTestData");
 
     // Avalonia native path ─────────────────────────────────────────────────────
     private string _rgba32PngPath = null!;   // ImportViaAvaloniaCopyPixels
@@ -33,11 +29,11 @@ public class BitmapImportBenchmarks
     private string _jpegPath     = null!;   // ImportViaAvaloniaCopyPixels
 
     // ImageSharp fallback path ────────────────────────────────────────────────
-    private string _palette4bitPath  = null!;  // ImportViaImageSharp
-    private string _palette8bitPath  = null!;  // ImportViaImageSharp
-    private string _gray8bitPath     = null!;  // ImportViaImageSharp
-    private string _gray16bitPath    = null!;  // ImportViaImageSharp
-    private string _mono1bitPath     = null!;  // ImportViaImageSharp
+    private string _palette4BitPath  = null!;  // ImportViaImageSharp
+    private string _palette8BitPath  = null!;  // ImportViaImageSharp
+    private string _gray8BitPath     = null!;  // ImportViaImageSharp
+    private string _gray16BitPath    = null!;  // ImportViaImageSharp
+    private string _mono1BitPath     = null!;  // ImportViaImageSharp
     private string _gifPath          = null!;
     private string _pbmPath          = null!;
     private string _pgmPath          = null!;
@@ -46,6 +42,7 @@ public class BitmapImportBenchmarks
     private string _tiffPath         = null!;
     private string _webpPath         = null!;
     private string _qoiPath          = null!;
+    private string _axpPath          = null!;
 
     private FileService _fileService = null!;
 
@@ -67,21 +64,24 @@ public class BitmapImportBenchmarks
         _rgba32PngPath  = Path.Combine(TestDataDir, "image_depth_32bit_rgba.png");
         _bmpPath        = Path.Combine(TestDataDir, "image_depth_24bit.bmp");
         _jpegPath       = Path.Combine(TestDataDir, "image1.jpg");
-        _palette4bitPath = Path.Combine(TestDataDir, "image_depth_4bit_palette.png");
-        _palette8bitPath = Path.Combine(TestDataDir, "image_depth_8bit_palette.png");
-        _gray8bitPath   = Path.Combine(TestDataDir, "image_depth_8bit_gray.png");
-        _gray16bitPath  = Path.Combine(TestDataDir, "image_depth_16bit_gray.png");
-        _mono1bitPath   = Path.Combine(TestDataDir, "image_depth_1bit.png");
+        _palette4BitPath = Path.Combine(TestDataDir, "image_depth_4bit_palette.png");
+        _palette8BitPath = Path.Combine(TestDataDir, "image_depth_8bit_palette.png");
+        _gray8BitPath   = Path.Combine(TestDataDir, "image_depth_8bit_gray.png");
+        _gray16BitPath  = Path.Combine(TestDataDir, "image_depth_16bit_gray.png");
+        _mono1BitPath   = Path.Combine(TestDataDir, "image_depth_1bit.png");
 
-        Directory.CreateDirectory(GeneratedDataDir);
-        _gifPath = CreateGeneratedSample("sample.gif");
-        _pbmPath = CreateGeneratedSample("sample.pbm");
-        _pgmPath = CreateGeneratedSample("sample.pgm");
-        _ppmPath = CreateGeneratedSample("sample.ppm");
-        _tgaPath = CreateGeneratedSample("sample.tga");
-        _tiffPath = CreateGeneratedSample("sample.tiff");
-        _webpPath = CreateGeneratedSample("sample.webp");
-        _qoiPath = CreateGeneratedSample("sample.qoi");
+        _gifPath = Path.Combine(TestDataDir, "image_format_gif.gif");
+        _pbmPath = Path.Combine(TestDataDir, "image_format_pbm.pbm");
+        _pgmPath = Path.Combine(TestDataDir, "image_format_pgm.pgm");
+        _ppmPath = Path.Combine(TestDataDir, "image_format_ppm.ppm");
+        _tgaPath = Path.Combine(TestDataDir, "image_format_tga.tga");
+        _tiffPath = Path.Combine(TestDataDir, "image_format_tiff.tiff");
+        _webpPath = Path.Combine(TestDataDir, "image_format_webp.webp");
+        _qoiPath = Path.Combine(TestDataDir, "image_format_qoi.qoi");
+
+        _axpPath = Path.Combine(AppContext.BaseDirectory, "benchmark_sample.axp");
+        var axpSourceImage = _fileService.ImportImage(_rgba32PngPath);
+        _fileService.SaveImage(axpSourceImage, _axpPath, ((uint)axpSourceImage.PixelCountX, (uint)axpSourceImage.PixelCountY));
     }
 
     // ── Avalonia CopyPixels path ──────────────────────────────────────────────
@@ -98,19 +98,19 @@ public class BitmapImportBenchmarks
     // ── ImageSharp fallback path ──────────────────────────────────────────────
 
     [Benchmark(Description = "ImageSharp – 4-bit palette PNG")]
-    public object ImportPalette4bit() => _fileService.ImportImage(_palette4bitPath);
+    public object ImportPalette4Bit() => _fileService.ImportImage(_palette4BitPath);
 
     [Benchmark(Description = "ImageSharp – 8-bit palette PNG")]
-    public object ImportPalette8bit() => _fileService.ImportImage(_palette8bitPath);
+    public object ImportPalette8Bit() => _fileService.ImportImage(_palette8BitPath);
 
     [Benchmark(Description = "ImageSharp – 8-bit grayscale PNG")]
-    public object ImportGray8bit() => _fileService.ImportImage(_gray8bitPath);
+    public object ImportGray8Bit() => _fileService.ImportImage(_gray8BitPath);
 
     [Benchmark(Description = "ImageSharp – 16-bit grayscale PNG")]
-    public object ImportGray16bit() => _fileService.ImportImage(_gray16bitPath);
+    public object ImportGray16Bit() => _fileService.ImportImage(_gray16BitPath);
 
     [Benchmark(Description = "ImageSharp – 1-bit monochrome PNG")]
-    public object ImportMono1bit() => _fileService.ImportImage(_mono1bitPath);
+    public object ImportMono1Bit() => _fileService.ImportImage(_mono1BitPath);
 
     [Benchmark(Description = "ImageSharp – GIF")]
     public object ImportGif() => _fileService.ImportImage(_gifPath);
@@ -136,29 +136,6 @@ public class BitmapImportBenchmarks
     [Benchmark(Description = "ImageSharp – QOI")]
     public object ImportQoi() => _fileService.ImportImage(_qoiPath);
 
-    private static string CreateGeneratedSample(string fileName)
-    {
-        var outputPath = Path.Combine(GeneratedDataDir, fileName);
-        using var image = CreateGradientImage(256, 256);
-        image.Save(outputPath);
-        return outputPath;
-    }
-
-    private static Image<Rgba32> CreateGradientImage(int width, int height)
-    {
-        var image = new Image<Rgba32>(width, height);
-        for (var y = 0; y < height; y++)
-        {
-            for (var x = 0; x < width; x++)
-            {
-                image[x, y] = new Rgba32(
-                    (byte)(x % 256),
-                    (byte)(y % 256),
-                    (byte)((x * 3 + y * 5) % 256),
-                    255);
-            }
-        }
-
-        return image;
-    }
+    [Benchmark(Description = "AXP – Load")]
+    public object LoadAxp() => _fileService.LoadImage(_axpPath);
 }
