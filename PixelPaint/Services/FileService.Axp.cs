@@ -329,8 +329,9 @@ public partial class FileService
         var pixels = new Color[pixelCount];
 
         using var payloadStream = new MemoryStream(payload, writable: false);
-        byte currentByte = 0;
+        ulong bitBuffer = 0;
         var bitsAvailable = 0;
+        var indexMask = (1UL << bitsPerPixel) - 1;
 
         for (var pixelIndex = 0; pixelIndex < pixelCount; pixelIndex++)
         {
@@ -340,17 +341,12 @@ public partial class FileService
                 if (nextByte < 0)
                     throw new EndOfStreamException("Unexpected end of AXP bit-packed payload.");
 
-                currentByte |= (byte)(nextByte << bitsAvailable);
+                bitBuffer |= (ulong)(byte)nextByte << bitsAvailable;
                 bitsAvailable += 8;
             }
 
-            var colorIndex = 0;
-            for (var bit = 0; bit < bitsPerPixel; bit++)
-            {
-                colorIndex |= (currentByte & 1) << bit;
-                currentByte >>= 1;
-            }
-
+            var colorIndex = (int)(bitBuffer & indexMask);
+            bitBuffer >>= bitsPerPixel;
             bitsAvailable -= bitsPerPixel;
             if (colorIndex < 0 || colorIndex >= palette.Length)
                 throw new InvalidDataException($"Color index {colorIndex} out of bounds for palette size {palette.Length}");

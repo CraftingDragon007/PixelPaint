@@ -132,7 +132,46 @@ public class FileServiceAxpTests
         Assert.That(() => _fileService.LoadImage(path), Throws.TypeOf<EndOfStreamException>());
     }
 
+    [Test]
+    public void Axp_ThreeColorBitPackedImage_Roundtrips()
+    {
+        var image = CreateImage(8, 2, (x, y) => ((x + y) % 3) switch
+        {
+            0 => Colors.Red,
+            1 => Colors.Green,
+            _ => Colors.Blue
+        });
+        var path = GetTempFilePath("three-color.axp");
+
+        _fileService.SaveImage(image, path, (640, 480));
+        var result = _fileService.LoadImage(path);
+
+        AssertImageEquals(image, result.image);
+        Assert.That(result.editorSize, Is.EqualTo((640u, 480u)));
+    }
+
+    [TestCase("image1.jpg")]
+    [TestCase("image2.png")]
+    [TestCase("image3.jpg")]
+    public void Axp_ImportedBitmapFromRepository_Roundtrips(string fileName)
+    {
+        var sourcePath = Path.Combine(GetRepositoryRoot(), fileName);
+        Assume.That(File.Exists(sourcePath), $"Repository image '{fileName}' was not found at '{sourcePath}'.");
+
+        var importedImage = _fileService.ImportImage(sourcePath);
+        var path = GetTempFilePath(Path.GetFileNameWithoutExtension(fileName) + ".axp");
+
+        _fileService.SaveImage(importedImage, path, (640, 480));
+        var result = _fileService.LoadImage(path);
+
+        AssertImageEquals(importedImage, result.image);
+        Assert.That(result.editorSize, Is.EqualTo((640u, 480u)));
+    }
+
     private string GetTempFilePath(string fileName) => Path.Combine(_tempDirectory, fileName);
+
+    private static string GetRepositoryRoot() =>
+        Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory, "../../../../"));
 
     private static Image CreateImage(int width, int height, Func<int, int, Color> colorFactory)
     {
