@@ -3,9 +3,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:controls="clr-namespace:PixelPaint.Controls"
+        xmlns:loc="clr-namespace:PixelPaint.Localization"
         mc:Ignorable="d" d:DesignWidth="816" d:DesignHeight="538"
         x:Class="PixelPaint.Views.EditWindow"
-        Title="PixelPaint"
+        Title="{loc:Loc App_Title}"
         Width="816" Height="538"
         MinWidth="640" MinHeight="420"
         Icon="/Assets/Icon.ico">
@@ -68,19 +69,20 @@
         <DockPanel>
             <!-- Menu -->
             <Menu DockPanel.Dock="Top">
-                <MenuItem Header="Datei">
-                    <MenuItem Name="OpenMenuItem" Header="Öffnen" />
-                    <MenuItem Name="ImportMenuItem" Header="Importieren (PNG, JPG/JPEG, BMP)..." />
-                    <MenuItem Name="SaveMenuItem" Header="Speichern" />
-                    <MenuItem Name="SaveAsMenuItem" Header="Speichern unter..." />
-                    <MenuItem Name="ResetMenuItem" Header="Reset" />
-                    <MenuItem Name="PixelSizeMenuItem" Header="Pixel Grösse.." />
-                    <MenuItem Name="ExportMenuItem" Header="Exportieren..." />
+                <MenuItem Header="{loc:Loc Menu_File}">
+                    <MenuItem Name="OpenMenuItem" Header="{loc:Loc Menu_File_Open}" />
+                    <MenuItem Name="ImportMenuItem" Header="{loc:Loc Menu_File_Import}" />
+                    <MenuItem Name="SaveMenuItem" Header="{loc:Loc Menu_File_Save}" />
+                    <MenuItem Name="SaveAsMenuItem" Header="{loc:Loc Menu_File_SaveAs}" />
+                    <MenuItem Name="ResetMenuItem" Header="{loc:Loc Menu_File_Reset}" />
+                    <MenuItem Name="PixelSizeMenuItem" Header="{loc:Loc Menu_File_PixelSize}" />
+                    <MenuItem Name="ExportMenuItem" Header="{loc:Loc Menu_File_Export}" />
                 </MenuItem>
-                <MenuItem Header="Bearbeiten">
-                    <MenuItem Name="UndoMenuItem" Header="Rückgängig" />
-                    <MenuItem Name="RedoMenuItem" Header="Wiederholen" />
+                <MenuItem Header="{loc:Loc Menu_Edit}">
+                    <MenuItem Name="UndoMenuItem" Header="{loc:Loc Menu_Edit_Undo}" />
+                    <MenuItem Name="RedoMenuItem" Header="{loc:Loc Menu_Edit_Redo}" />
                 </MenuItem>
+                <MenuItem Name="LanguageMenuItem" Header="{loc:Loc Menu_Language}" />
             </Menu>
 
             <!-- Main Content -->
@@ -92,35 +94,35 @@
                               VerticalScrollBarVisibility="Auto">
                     <StackPanel Spacing="6">
                     <!-- Color Radio Buttons -->
-                    <RadioButton GroupName="ColorSelector" Content="Schwarz"
+                    <RadioButton GroupName="ColorSelector" Content="{loc:Loc Color_Black}"
                                  IsChecked="True"
                                  Background="Black"
                                  Foreground="White"
                                  IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
-                    <RadioButton GroupName="ColorSelector" Content="Weiss"
+                    <RadioButton GroupName="ColorSelector" Content="{loc:Loc Color_White}"
                                  Background="White"
                                  Foreground="Black"
                                  IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
-                    <RadioButton GroupName="ColorSelector" Content="Grün"
+                    <RadioButton GroupName="ColorSelector" Content="{loc:Loc Color_Green}"
                                  Background="Lime"
                                  Foreground="Black"
                                  IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
-                    <RadioButton GroupName="ColorSelector" Content="Gelb"
+                    <RadioButton GroupName="ColorSelector" Content="{loc:Loc Color_Yellow}"
                                  Background="Yellow"
                                  Foreground="Black"
                                  IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
-                    <RadioButton GroupName="ColorSelector" Content="Blau"
+                    <RadioButton GroupName="ColorSelector" Content="{loc:Loc Color_Blue}"
                                  Background="Blue"
                                  Foreground="White"
                                  IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
-                    <RadioButton GroupName="ColorSelector" Content="Rot"
+                    <RadioButton GroupName="ColorSelector" Content="{loc:Loc Color_Red}"
                                  Background="Red"
                                  Foreground="White"
                                  IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
 
                     <!-- Other Color Option -->
                     <StackPanel Orientation="Horizontal">
-                        <RadioButton Name="OtherColorRadioButton" GroupName="ColorSelector" Content="andere"
+                        <RadioButton Name="OtherColorRadioButton" GroupName="ColorSelector" Content="{loc:Loc Color_Other}"
                                      IsCheckedChanged="OnColorRadioButtonIsCheckedChanged" />
                         <Button Name="BrowseColorsButton" Content="..."
                                 Width="28"
@@ -129,21 +131,21 @@
 
                     <Separator Margin="0,12,0,4" />
 
-                    <TextBlock Text="Bildgrösse" FontWeight="Bold" />
+                    <TextBlock Text="{loc:Loc Label_ImageSize}" FontWeight="Bold" />
                     <TextBlock Name="ImageSizeTextBlock" Text="32 × 16" />
 
-                    <TextBlock Text="Zoom" FontWeight="Bold" Margin="0,8,0,0" />
+                    <TextBlock Text="{loc:Loc Label_Zoom}" FontWeight="Bold" Margin="0,8,0,0" />
                     <TextBlock Name="ZoomTextBlock" Text="100 %" />
 
                     <StackPanel Orientation="Horizontal" Spacing="4">
                         <Button Name="ZoomOutButton" Content="-" Width="28" />
-                        <Button Name="ZoomResetButton" Content="100 %" MinWidth="52" />
+                        <Button Name="ZoomResetButton" Content="{loc:Loc Button_ZoomReset}" MinWidth="52" />
                         <Button Name="ZoomInButton" Content="+" Width="28" />
                     </StackPanel>
 
-                    <Button Name="ZoomFitButton" Content="Einpassen" />
+                    <Button Name="ZoomFitButton" Content="{loc:Loc Button_ZoomFit}" />
 
-                    <TextBlock Text="Pinselgrösse" FontWeight="Bold" Margin="0,8,0,0" />
+                    <TextBlock Text="{loc:Loc Label_BrushSize}" FontWeight="Bold" Margin="0,8,0,0" />
                     <Slider Name="BrushSizeSlider"
                             Minimum="1"
                             Maximum="256"
@@ -154,17 +156,17 @@
                     <TextBlock Name="BrushSizeTextBlock" Text="1 px" />
 
                     <!-- Show Grid Lines Option -->
-                    <CheckBox Name="ShowGridLinesCheckBox" Content="Gitter anzeigen" IsChecked="True" Margin="0,8,0,0" />
+                    <CheckBox Name="ShowGridLinesCheckBox" Content="{loc:Loc Label_ShowGridLines}" IsChecked="True" Margin="0,8,0,0" />
                     
                     <!-- Tool Radio Buttons -->
-                    <RadioButton GroupName="ToolSelector" Content="Pinsel"
+                    <RadioButton GroupName="ToolSelector" Content="{loc:Loc Tool_Brush}"
                                  IsChecked="True"
                                  IsCheckedChanged="OnBrushToolRadioButtonIsCheckedChanged" />
                     
-                    <RadioButton GroupName="ToolSelector" Content="Eimer"
+                    <RadioButton GroupName="ToolSelector" Content="{loc:Loc Tool_Fill}"
                                  IsCheckedChanged="OnFillToolRadioButtonIsCheckedChanged" />
                     
-                    <RadioButton GroupName="ToolSelector" Content="Pipette"
+                    <RadioButton GroupName="ToolSelector" Content="{loc:Loc Tool_Pipette}"
                                  IsCheckedChanged="OnPipetteToolRadioButtonIsCheckedChanged" />
 
                     </StackPanel>

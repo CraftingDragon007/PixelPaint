@@ -2,9 +2,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:loc="clr-namespace:PixelPaint.Localization"
         mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="450"
         x:Class="PixelPaint.Views.ColorDialog"
-        Title="Pick a Color" Width="500" Height="450"
+        Title="{loc:Loc Dialog_Color_Title}" Width="500" Height="450"
         Icon="/Assets/Icon.ico"
         CanResize="False">
 
@@ -12,8 +13,8 @@
     <StackPanel>
         <ColorView VerticalAlignment="Stretch" Name="ColorPicker" />
         <WrapPanel HorizontalAlignment="Right">
-            <Button Margin="10" Name="OkButton" Content="OK" Height="30" Click="OkButton_Click" />
-            <Button Margin="10" Name="CancelButton" Content="Cancel" Height="30" Click="CancelButton_Click" />
+            <Button Margin="10" Name="OkButton" Content="{loc:Loc Button_Ok}" Height="30" Click="OkButton_Click" />
+            <Button Margin="10" Name="CancelButton" Content="{loc:Loc Button_Cancel}" Height="30" Click="CancelButton_Click" />
         </WrapPanel>
     </StackPanel>
 

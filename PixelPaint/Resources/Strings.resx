@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="App_Title" xml:space="preserve"><value>PixelPaint</value></data>
+  <data name="Menu_File" xml:space="preserve"><value>File</value></data>
+  <data name="Menu_File_Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Menu_File_Import" xml:space="preserve"><value>Import (PNG, JPG/JPEG, BMP)...</value></data>
+  <data name="Menu_File_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Menu_File_SaveAs" xml:space="preserve"><value>Save as...</value></data>
+  <data name="Menu_File_Reset" xml:space="preserve"><value>Reset</value></data>
+  <data name="Menu_File_PixelSize" xml:space="preserve"><value>Pixel size...</value></data>
+  <data name="Menu_File_Export" xml:space="preserve"><value>Export...</value></data>
+  <data name="Menu_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Menu_Edit_Undo" xml:space="preserve"><value>Undo</value></data>
+  <data name="Menu_Edit_Redo" xml:space="preserve"><value>Redo</value></data>
+  <data name="Menu_Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Menu_Language_English" xml:space="preserve"><value>English</value></data>
+  <data name="Menu_Language_German" xml:space="preserve"><value>Deutsch</value></data>
+  <data name="Menu_Language_French" xml:space="preserve"><value>Français</value></data>
+  <data name="Menu_Language_Spanish" xml:space="preserve"><value>Español</value></data>
+  <data name="Color_Black" xml:space="preserve"><value>Black</value></data>
+  <data name="Color_White" xml:space="preserve"><value>White</value></data>
+  <data name="Color_Green" xml:space="preserve"><value>Green</value></data>
+  <data name="Color_Yellow" xml:space="preserve"><value>Yellow</value></data>
+  <data name="Color_Blue" xml:space="preserve"><value>Blue</value></data>
+  <data name="Color_Red" xml:space="preserve"><value>Red</value></data>
+  <data name="Color_Other" xml:space="preserve"><value>Other</value></data>
+  <data name="Label_ImageSize" xml:space="preserve"><value>Image size</value></data>
+  <data name="Label_Zoom" xml:space="preserve"><value>Zoom</value></data>
+  <data name="Button_ZoomReset" xml:space="preserve"><value>100 %</value></data>
+  <data name="Button_ZoomFit" xml:space="preserve"><value>Fit</value></data>
+  <data name="Label_BrushSize" xml:space="preserve"><value>Brush size</value></data>
+  <data name="Label_ShowGridLines" xml:space="preserve"><value>Show grid</value></data>
+  <data name="Tool_Brush" xml:space="preserve"><value>Brush</value></data>
+  <data name="Tool_Fill" xml:space="preserve"><value>Bucket</value></data>
+  <data name="Tool_Pipette" xml:space="preserve"><value>Eyedropper</value></data>
+  <data name="Dialog_Color_Title" xml:space="preserve"><value>Pick a color</value></data>
+  <data name="Dialog_PixelSize_Title" xml:space="preserve"><value>Pixel size</value></data>
+  <data name="Dialog_PixelSize_Width" xml:space="preserve"><value>Width (pixels):</value></data>
+  <data name="Dialog_PixelSize_Height" xml:space="preserve"><value>Height (pixels):</value></data>
+  <data name="Button_Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="Button_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Error_Title" xml:space="preserve"><value>Error</value></data>
+  <data name="Error_NoImageToSave" xml:space="preserve"><value>No image to save.</value></data>
+  <data name="Error_NoImageToExport" xml:space="preserve"><value>No image to export.</value></data>
+  <data name="Dialog_SaveImage_Title" xml:space="preserve"><value>Save image</value></data>
+  <data name="Dialog_OpenImage_Title" xml:space="preserve"><value>Open image</value></data>
+  <data name="Dialog_ImportImage_Title" xml:space="preserve"><value>Import image (PNG, JPG/JPEG, BMP)</value></data>
+  <data name="Error_ImportFailed_Title" xml:space="preserve"><value>Import failed</value></data>
+  <data name="Dialog_Reset_Title" xml:space="preserve"><value>Reset</value></data>
+  <data name="Dialog_Reset_Message" xml:space="preserve"><value>Do you really want to reset the image? All changes will be lost.</value></data>
+  <data name="Dialog_LargeSvg_Title" xml:space="preserve"><value>Large SVG file</value></data>
+  <data name="Dialog_LargeSvg_Message" xml:space="preserve"><value>This image will likely be about {0:0.0} MB as SVG.
+Saving can take longer and the file can become unwieldy.
+
+Save as SVG anyway?</value></data>
+  <data name="Format_ImageSize" xml:space="preserve"><value>{0} × {1}</value></data>
+  <data name="Format_BrushSize" xml:space="preserve"><value>{0} px</value></data>
+  <data name="Format_Zoom" xml:space="preserve"><value>{0:0} %</value></data>
+  <data name="FileType_RasterImage" xml:space="preserve"><value>Raster image (PNG, JPG, JPEG, BMP)</value></data>
+  <data name="FileType_AdvancedPixelPaint" xml:space="preserve"><value>Advanced Pixel Paint File</value></data>
+  <data name="FileType_SvgImage" xml:space="preserve"><value>SVG image</value></data>
+  <data name="FileType_BetterPixelPaint" xml:space="preserve"><value>Better Pixel Paint File</value></data>
+  <data name="FileType_PixelPaint" xml:space="preserve"><value>Pixel Paint File</value></data>
+  <data name="FileType_PngImage" xml:space="preserve"><value>PNG image</value></data>
+  <data name="FileType_BmpImage" xml:space="preserve"><value>BMP image</value></data>
+</root>
+

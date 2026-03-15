@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia;
@@ -12,6 +14,7 @@ using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using MsBox.Avalonia;
+using PixelPaint.Localization;
 using PixelPaint.Services;
 using Image = PixelPaint.Models.Image;
 
@@ -22,21 +25,24 @@ public partial class EditWindow : Window
     private readonly IDrawingService _drawingService;
     private readonly IFileService _fileService;
     private readonly EditorZoomController _zoomController;
+    private readonly LocalizationService _localizationService;
+    private readonly List<MenuItem> _languageMenuItems = [];
     private string? _currentFilePath;
     private bool _isDrawing;
     private bool _fitZoomAfterRefresh = true;
     private double? _pinchStartZoom;
 
-    public EditWindow() : this(new DrawingService(), new FileService(), new EditorZoomController())
+    public EditWindow() : this(new DrawingService(), new FileService(), new EditorZoomController(), LocalizationService.Instance)
     {
     }
 
-    public EditWindow(IDrawingService drawingService, IFileService fileService, EditorZoomController zoomController)
+    public EditWindow(IDrawingService drawingService, IFileService fileService, EditorZoomController zoomController, LocalizationService localizationService)
     {
         InitializeComponent();
         _drawingService = drawingService;
         _fileService = fileService;
         _zoomController = zoomController;
+        _localizationService = localizationService;
 
         var random = new Random();
         var buffer = new byte[3];
@@ -83,6 +89,8 @@ public partial class EditWindow : Window
         ZoomOutButton.Click += (_, _) => ZoomByFactor(1 / 1.25d);
         ZoomResetButton.Click += (_, _) => ApplyZoom(1d);
         ZoomFitButton.Click += (_, _) => ZoomToFit();
+        BuildLanguageMenuItems();
+        _localizationService.CultureChanged += LocalizationServiceOnCultureChanged;
 
         _drawingService.ImageChanged += DrawingServiceOnImageChanged;
         _drawingService.OtherColorChanged += (_, color) =>
@@ -96,7 +104,75 @@ public partial class EditWindow : Window
         UpdateBrushSizeUi(_drawingService.BrushSize);
         PixelCanvas.ShowGridLines = ShowGridLinesCheckBox.IsChecked ?? true;
         UpdateCommandState();
+        UpdateLanguageMenuState();
         UpdateZoomUi();
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        _localizationService.CultureChanged -= LocalizationServiceOnCultureChanged;
+        base.OnClosed(e);
+    }
+
+    private void LocalizationServiceOnCultureChanged(object? sender, CultureInfo e)
+    {
+        UpdateLanguageMenuState();
+        UpdateZoomUi();
+        UpdateBrushSizeUi(_drawingService.BrushSize);
+
+        var image = _drawingService.CurrentImage;
+        if (image is not null)
+            UpdateImageSizeUi(image);
+    }
+
+    private void UpdateLanguageMenuState()
+    {
+        var currentCulture = _localizationService.CurrentCulture;
+        foreach (var menuItem in _languageMenuItems)
+        {
+            if (menuItem.Tag is not CultureInfo culture)
+                continue;
+
+            var isChecked = culture.Name.Equals(currentCulture.Name, StringComparison.OrdinalIgnoreCase) ||
+                            culture.TwoLetterISOLanguageName.Equals(currentCulture.TwoLetterISOLanguageName, StringComparison.OrdinalIgnoreCase);
+            menuItem.IsChecked = isChecked;
+        }
+    }
+
+    private void BuildLanguageMenuItems()
+    {
+        _languageMenuItems.Clear();
+
+        foreach (var culture in _localizationService.SupportedCultures)
+        {
+            var menuItem = new MenuItem
+            {
+                Header = GetLanguageDisplayName(culture),
+                ToggleType = MenuItemToggleType.CheckBox,
+                Tag = culture
+            };
+            menuItem.Click += LanguageMenuItemOnClick;
+            _languageMenuItems.Add(menuItem);
+        }
+
+        LanguageMenuItem.ItemsSource = _languageMenuItems;
+    }
+
+    private static string GetLanguageDisplayName(CultureInfo culture)
+    {
+        var nativeName = culture.NativeName;
+        if (string.IsNullOrWhiteSpace(nativeName))
+            return culture.DisplayName;
+
+        return char.ToUpper(nativeName[0], culture) + nativeName[1..];
+    }
+
+    private void LanguageMenuItemOnClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not MenuItem { Tag: CultureInfo culture })
+            return;
+
+        _localizationService.SetCulture(culture);
     }
 
     private void EditWindowOnKeyDown(object? sender, KeyEventArgs e)
@@ -137,7 +213,7 @@ public partial class EditWindow : Window
         var image = _drawingService.CurrentImage;
         if (image is null)
         {
-            await MessageBoxManager.GetMessageBoxStandard("Fehler", "Kein Bild zum Speichern").ShowAsPopupAsync(this);
+            await MessageBoxManager.GetMessageBoxStandard(_localizationService["Error_Title"], _localizationService["Error_NoImageToSave"]).ShowAsPopupAsync(this);
             return;
         }
 
@@ -164,7 +240,7 @@ public partial class EditWindow : Window
         var image = _drawingService.CurrentImage;
         if (image is null)
         {
-            await MessageBoxManager.GetMessageBoxStandard("Fehler", "Kein Bild zum Speichern").ShowAsPopupAsync(this);
+            await MessageBoxManager.GetMessageBoxStandard(_localizationService["Error_Title"], _localizationService["Error_NoImageToSave"]).ShowAsPopupAsync(this);
             return;
         }
 
@@ -172,7 +248,7 @@ public partial class EditWindow : Window
         {
             DefaultExtension = "axp",
             FileTypeChoices = _fileService.FileTypeFilter,
-            Title = "Bild speichern"
+            Title = _localizationService["Dialog_SaveImage_Title"]
         });
         if (dialogResult is null) return;
         var localPath = dialogResult.TryGetLocalPath() ?? dialogResult.Path.ToString();
@@ -196,8 +272,8 @@ public partial class EditWindow : Window
     private async void ResetMenuItemOnClick(object? sender, RoutedEventArgs e)
     {
         var box = MessageBoxManager.GetMessageBoxStandard(
-            "Zurücksetzen",
-            "Möchtest du das Bild wirklich zurücksetzen? Alle Änderungen gehen verloren.",
+            _localizationService["Dialog_Reset_Title"],
+            _localizationService["Dialog_Reset_Message"],
             MsBox.Avalonia.Enums.ButtonEnum.YesNo);
         var result = await box.ShowAsPopupAsync(this);
         if (result == MsBox.Avalonia.Enums.ButtonResult.Yes)
@@ -233,7 +309,7 @@ public partial class EditWindow : Window
         var image = _drawingService.CurrentImage;
         if (image is null)
         {
-            await MessageBoxManager.GetMessageBoxStandard("Fehler", "Kein Bild zum Exportieren").ShowAsPopupAsync(this);
+            await MessageBoxManager.GetMessageBoxStandard(_localizationService["Error_Title"], _localizationService["Error_NoImageToExport"]).ShowAsPopupAsync(this);
             return;
         }
 
@@ -242,11 +318,11 @@ public partial class EditWindow : Window
             DefaultExtension = "png",
             FileTypeChoices =
             [
-                new FilePickerFileType("PNG-Bild") { Patterns = ["*.png"] },
-                new FilePickerFileType("SVG-Bild")  { Patterns = ["*.svg"], MimeTypes = ["image/svg+xml"] },
-                new FilePickerFileType("BMP-Bild") { Patterns = ["*.bmp"] }
+                new FilePickerFileType(_localizationService["FileType_PngImage"]) { Patterns = ["*.png"] },
+                new FilePickerFileType(_localizationService["FileType_SvgImage"])  { Patterns = ["*.svg"], MimeTypes = ["image/svg+xml"] },
+                new FilePickerFileType(_localizationService["FileType_BmpImage"]) { Patterns = ["*.bmp"] }
             ],
-            Title = "Bild exportieren"
+            Title = _localizationService["Menu_File_Export"]
         });
         if (dialogResult is null) return;
 
@@ -301,10 +377,8 @@ public partial class EditWindow : Window
 
         var estimatedSizeMb = estimatedSizeBytes / (1024d * 1024d);
         var dialog = MessageBoxManager.GetMessageBoxStandard(
-            "Grosse SVG-Datei",
-            $"Dieses Bild wird als SVG voraussichtlich etwa {estimatedSizeMb:0.0} MB gross.\n" +
-            "Das Speichern kann länger dauern und die Datei kann unhandlich werden.\n\n" +
-            "Trotzdem als SVG speichern?",
+            _localizationService["Dialog_LargeSvg_Title"],
+            _localizationService.Format("Dialog_LargeSvg_Message", estimatedSizeMb),
             MsBox.Avalonia.Enums.ButtonEnum.YesNo);
 
         var result = await dialog.ShowAsPopupAsync(this);
@@ -347,7 +421,7 @@ public partial class EditWindow : Window
     private async void OpenMenuItemOnClick(object? sender, RoutedEventArgs e)
     {
         var dialogResult = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-            { FileTypeFilter = _fileService.FileTypeFilter, AllowMultiple = false, Title = "Bild öffnen" });
+            { FileTypeFilter = _fileService.FileTypeFilter, AllowMultiple = false, Title = _localizationService["Dialog_OpenImage_Title"] });
         if (dialogResult.Count == 0) return;
         var file = dialogResult[0];
 
@@ -365,7 +439,7 @@ public partial class EditWindow : Window
         {
             FileTypeFilter = _fileService.ImportFileTypeFilter,
             AllowMultiple = false,
-            Title = "Bild importieren (PNG, JPG/JPEG, BMP)"
+            Title = _localizationService["Dialog_ImportImage_Title"]
         });
 
         if (dialogResult.Count == 0) return;
@@ -384,7 +458,7 @@ public partial class EditWindow : Window
         catch (Exception ex) when (ShouldHandleRuntimeExceptions())
         {
             await MessageBoxManager
-                .GetMessageBoxStandard("Fehler beim Importieren", ex.Message)
+                .GetMessageBoxStandard(_localizationService["Error_ImportFailed_Title"], ex.Message)
                 .ShowAsPopupAsync(this);
         }
     }
@@ -606,17 +680,17 @@ public partial class EditWindow : Window
 
     private void UpdateImageSizeUi(Image image)
     {
-        ImageSizeTextBlock.Text = $"{image.PixelCountX} × {image.PixelCountY}";
+        ImageSizeTextBlock.Text = _localizationService.Format("Format_ImageSize", image.PixelCountX, image.PixelCountY);
     }
 
     private void UpdateBrushSizeUi(int brushSize)
     {
-        BrushSizeTextBlock.Text = $"{brushSize} px";
+        BrushSizeTextBlock.Text = _localizationService.Format("Format_BrushSize", brushSize);
     }
 
     private void UpdateZoomUi()
     {
-        ZoomTextBlock.Text = $"{PixelCanvas.Zoom * 100:0} %";
+        ZoomTextBlock.Text = _localizationService.Format("Format_Zoom", PixelCanvas.Zoom * 100);
     }
 
     private void ClampBrushSizeToImage(Image image)

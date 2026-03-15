@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
+using PixelPaint.Localization;
 using PixelPaint.Models;
 
 namespace PixelPaint.Services;
@@ -131,7 +131,7 @@ public partial class FileService : IFileService
 
     public IReadOnlyList<FilePickerFileType> ImportFileTypeFilter =>
     [
-        new FilePickerFileType("Raster-Bild (PNG, JPG, JPEG, BMP)")
+        new FilePickerFileType(LocalizationService.Instance["FileType_RasterImage"])
         {
             Patterns = ["*.png", "*.jpg", "*.jpeg", "*.bmp"],
             MimeTypes = ["image/png", "image/jpeg", "image/bmp"]
@@ -140,25 +140,25 @@ public partial class FileService : IFileService
 
     public IReadOnlyList<FilePickerFileType> FileTypeFilter =>
     [
-        new("Advanced Pixel Paint File")
+        new(LocalizationService.Instance["FileType_AdvancedPixelPaint"])
         {
             Patterns = ["*.axp"], MimeTypes =
                 ["application/octet-stream"],
             AppleUniformTypeIdentifiers = ["com.pixel-paint.axp"]
         },
-        new("SVG-Bild")
+        new(LocalizationService.Instance["FileType_SvgImage"])
         {
             Patterns = ["*.svg"], MimeTypes =
                 ["image/svg+xml"],
             AppleUniformTypeIdentifiers = ["public.svg-image"]
         },
-        new("Better Pixel Paint File")
+        new(LocalizationService.Instance["FileType_BetterPixelPaint"])
         {
             Patterns = ["*.bxp"], MimeTypes =
                 ["application/octet-stream"],
             AppleUniformTypeIdentifiers = ["com.pixel-paint.bxp"]
         },
-        new("Pixel Paint File")
+        new(LocalizationService.Instance["FileType_PixelPaint"])
         {
             Patterns = ["*.pxp"], MimeTypes =
                 ["text/plain"],

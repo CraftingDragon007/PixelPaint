@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="App_Title" xml:space="preserve"><value>PixelPaint</value></data>
+  <data name="Menu_File" xml:space="preserve"><value>Fichier</value></data>
+  <data name="Menu_File_Open" xml:space="preserve"><value>Ouvrir</value></data>
+  <data name="Menu_File_Import" xml:space="preserve"><value>Importer (PNG, JPG/JPEG, BMP)...</value></data>
+  <data name="Menu_File_Save" xml:space="preserve"><value>Enregistrer</value></data>
+  <data name="Menu_File_SaveAs" xml:space="preserve"><value>Enregistrer sous...</value></data>
+  <data name="Menu_File_Reset" xml:space="preserve"><value>Réinitialiser</value></data>
+  <data name="Menu_File_PixelSize" xml:space="preserve"><value>Taille en pixels...</value></data>
+  <data name="Menu_File_Export" xml:space="preserve"><value>Exporter...</value></data>
+  <data name="Menu_Edit" xml:space="preserve"><value>Édition</value></data>
+  <data name="Menu_Edit_Undo" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Menu_Edit_Redo" xml:space="preserve"><value>Rétablir</value></data>
+  <data name="Menu_Language" xml:space="preserve"><value>Langue</value></data>
+  <data name="Menu_Language_English" xml:space="preserve"><value>Anglais</value></data>
+  <data name="Menu_Language_German" xml:space="preserve"><value>Allemand</value></data>
+  <data name="Menu_Language_French" xml:space="preserve"><value>Français</value></data>
+  <data name="Menu_Language_Spanish" xml:space="preserve"><value>Espagnol</value></data>
+  <data name="Color_Black" xml:space="preserve"><value>Noir</value></data>
+  <data name="Color_White" xml:space="preserve"><value>Blanc</value></data>
+  <data name="Color_Green" xml:space="preserve"><value>Vert</value></data>
+  <data name="Color_Yellow" xml:space="preserve"><value>Jaune</value></data>
+  <data name="Color_Blue" xml:space="preserve"><value>Bleu</value></data>
+  <data name="Color_Red" xml:space="preserve"><value>Rouge</value></data>
+  <data name="Color_Other" xml:space="preserve"><value>Autre</value></data>
+  <data name="Label_ImageSize" xml:space="preserve"><value>Taille de l'image</value></data>
+  <data name="Label_Zoom" xml:space="preserve"><value>Zoom</value></data>
+  <data name="Button_ZoomReset" xml:space="preserve"><value>100 %</value></data>
+  <data name="Button_ZoomFit" xml:space="preserve"><value>Ajuster</value></data>
+  <data name="Label_BrushSize" xml:space="preserve"><value>Taille du pinceau</value></data>
+  <data name="Label_ShowGridLines" xml:space="preserve"><value>Afficher la grille</value></data>
+  <data name="Tool_Brush" xml:space="preserve"><value>Pinceau</value></data>
+  <data name="Tool_Fill" xml:space="preserve"><value>Pot de peinture</value></data>
+  <data name="Tool_Pipette" xml:space="preserve"><value>Pipette</value></data>
+  <data name="Dialog_Color_Title" xml:space="preserve"><value>Choisir une couleur</value></data>
+  <data name="Dialog_PixelSize_Title" xml:space="preserve"><value>Taille en pixels</value></data>
+  <data name="Dialog_PixelSize_Width" xml:space="preserve"><value>Largeur (pixels) :</value></data>
+  <data name="Dialog_PixelSize_Height" xml:space="preserve"><value>Hauteur (pixels) :</value></data>
+  <data name="Button_Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="Button_Cancel" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Error_Title" xml:space="preserve"><value>Erreur</value></data>
+  <data name="Error_NoImageToSave" xml:space="preserve"><value>Aucune image à enregistrer.</value></data>
+  <data name="Error_NoImageToExport" xml:space="preserve"><value>Aucune image à exporter.</value></data>
+  <data name="Dialog_SaveImage_Title" xml:space="preserve"><value>Enregistrer l'image</value></data>
+  <data name="Dialog_OpenImage_Title" xml:space="preserve"><value>Ouvrir une image</value></data>
+  <data name="Dialog_ImportImage_Title" xml:space="preserve"><value>Importer une image (PNG, JPG/JPEG, BMP)</value></data>
+  <data name="Error_ImportFailed_Title" xml:space="preserve"><value>Échec de l'importation</value></data>
+  <data name="Dialog_Reset_Title" xml:space="preserve"><value>Réinitialiser</value></data>
+  <data name="Dialog_Reset_Message" xml:space="preserve"><value>Voulez-vous vraiment réinitialiser l'image ? Toutes les modifications seront perdues.</value></data>
+  <data name="Dialog_LargeSvg_Title" xml:space="preserve"><value>Fichier SVG volumineux</value></data>
+  <data name="Dialog_LargeSvg_Message" xml:space="preserve"><value>Cette image fera probablement environ {0:0.0} Mo en SVG.
+L'enregistrement peut prendre plus de temps et le fichier peut devenir difficile à manipuler.
+
+Enregistrer quand même en SVG ?</value></data>
+  <data name="Format_ImageSize" xml:space="preserve"><value>{0} x {1}</value></data>
+  <data name="Format_BrushSize" xml:space="preserve"><value>{0} px</value></data>
+  <data name="Format_Zoom" xml:space="preserve"><value>{0:0} %</value></data>
+  <data name="FileType_RasterImage" xml:space="preserve"><value>Image matricielle (PNG, JPG, JPEG, BMP)</value></data>
+  <data name="FileType_AdvancedPixelPaint" xml:space="preserve"><value>Advanced Pixel Paint File</value></data>
+  <data name="FileType_SvgImage" xml:space="preserve"><value>Image SVG</value></data>
+  <data name="FileType_BetterPixelPaint" xml:space="preserve"><value>Better Pixel Paint File</value></data>
+  <data name="FileType_PixelPaint" xml:space="preserve"><value>Pixel Paint File</value></data>
+  <data name="FileType_PngImage" xml:space="preserve"><value>Image PNG</value></data>
+  <data name="FileType_BmpImage" xml:space="preserve"><value>Image BMP</value></data>
+</root>
+

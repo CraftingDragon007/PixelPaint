@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="App_Title" xml:space="preserve"><value>PixelPaint</value></data>
+  <data name="Menu_File" xml:space="preserve"><value>Archivo</value></data>
+  <data name="Menu_File_Open" xml:space="preserve"><value>Abrir</value></data>
+  <data name="Menu_File_Import" xml:space="preserve"><value>Importar (PNG, JPG/JPEG, BMP)...</value></data>
+  <data name="Menu_File_Save" xml:space="preserve"><value>Guardar</value></data>
+  <data name="Menu_File_SaveAs" xml:space="preserve"><value>Guardar como...</value></data>
+  <data name="Menu_File_Reset" xml:space="preserve"><value>Restablecer</value></data>
+  <data name="Menu_File_PixelSize" xml:space="preserve"><value>Tamaño de píxel...</value></data>
+  <data name="Menu_File_Export" xml:space="preserve"><value>Exportar...</value></data>
+  <data name="Menu_Edit" xml:space="preserve"><value>Editar</value></data>
+  <data name="Menu_Edit_Undo" xml:space="preserve"><value>Deshacer</value></data>
+  <data name="Menu_Edit_Redo" xml:space="preserve"><value>Rehacer</value></data>
+  <data name="Menu_Language" xml:space="preserve"><value>Idioma</value></data>
+  <data name="Menu_Language_English" xml:space="preserve"><value>Inglés</value></data>
+  <data name="Menu_Language_German" xml:space="preserve"><value>Alemán</value></data>
+  <data name="Menu_Language_French" xml:space="preserve"><value>Francés</value></data>
+  <data name="Menu_Language_Spanish" xml:space="preserve"><value>Español</value></data>
+  <data name="Color_Black" xml:space="preserve"><value>Negro</value></data>
+  <data name="Color_White" xml:space="preserve"><value>Blanco</value></data>
+  <data name="Color_Green" xml:space="preserve"><value>Verde</value></data>
+  <data name="Color_Yellow" xml:space="preserve"><value>Amarillo</value></data>
+  <data name="Color_Blue" xml:space="preserve"><value>Azul</value></data>
+  <data name="Color_Red" xml:space="preserve"><value>Rojo</value></data>
+  <data name="Color_Other" xml:space="preserve"><value>Otro</value></data>
+  <data name="Label_ImageSize" xml:space="preserve"><value>Tamaño de imagen</value></data>
+  <data name="Label_Zoom" xml:space="preserve"><value>Zoom</value></data>
+  <data name="Button_ZoomReset" xml:space="preserve"><value>100 %</value></data>
+  <data name="Button_ZoomFit" xml:space="preserve"><value>Ajustar</value></data>
+  <data name="Label_BrushSize" xml:space="preserve"><value>Tamaño del pincel</value></data>
+  <data name="Label_ShowGridLines" xml:space="preserve"><value>Mostrar cuadrícula</value></data>
+  <data name="Tool_Brush" xml:space="preserve"><value>Pincel</value></data>
+  <data name="Tool_Fill" xml:space="preserve"><value>Cubo</value></data>
+  <data name="Tool_Pipette" xml:space="preserve"><value>Cuentagotas</value></data>
+  <data name="Dialog_Color_Title" xml:space="preserve"><value>Elegir un color</value></data>
+  <data name="Dialog_PixelSize_Title" xml:space="preserve"><value>Tamaño de píxel</value></data>
+  <data name="Dialog_PixelSize_Width" xml:space="preserve"><value>Ancho (píxeles):</value></data>
+  <data name="Dialog_PixelSize_Height" xml:space="preserve"><value>Alto (píxeles):</value></data>
+  <data name="Button_Ok" xml:space="preserve"><value>Aceptar</value></data>
+  <data name="Button_Cancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Error_Title" xml:space="preserve"><value>Error</value></data>
+  <data name="Error_NoImageToSave" xml:space="preserve"><value>No hay ninguna imagen para guardar.</value></data>
+  <data name="Error_NoImageToExport" xml:space="preserve"><value>No hay ninguna imagen para exportar.</value></data>
+  <data name="Dialog_SaveImage_Title" xml:space="preserve"><value>Guardar imagen</value></data>
+  <data name="Dialog_OpenImage_Title" xml:space="preserve"><value>Abrir imagen</value></data>
+  <data name="Dialog_ImportImage_Title" xml:space="preserve"><value>Importar imagen (PNG, JPG/JPEG, BMP)</value></data>
+  <data name="Error_ImportFailed_Title" xml:space="preserve"><value>Error al importar</value></data>
+  <data name="Dialog_Reset_Title" xml:space="preserve"><value>Restablecer</value></data>
+  <data name="Dialog_Reset_Message" xml:space="preserve"><value>¿Realmente quieres restablecer la imagen? Se perderán todos los cambios.</value></data>
+  <data name="Dialog_LargeSvg_Title" xml:space="preserve"><value>Archivo SVG grande</value></data>
+  <data name="Dialog_LargeSvg_Message" xml:space="preserve"><value>Esta imagen probablemente ocupará unos {0:0.0} MB como SVG.
+Guardar puede tardar más y el archivo puede resultar difícil de manejar.
+
+¿Guardar de todos modos como SVG?</value></data>
+  <data name="Format_ImageSize" xml:space="preserve"><value>{0} x {1}</value></data>
+  <data name="Format_BrushSize" xml:space="preserve"><value>{0} px</value></data>
+  <data name="Format_Zoom" xml:space="preserve"><value>{0:0} %</value></data>
+  <data name="FileType_RasterImage" xml:space="preserve"><value>Imagen ráster (PNG, JPG, JPEG, BMP)</value></data>
+  <data name="FileType_AdvancedPixelPaint" xml:space="preserve"><value>Advanced Pixel Paint File</value></data>
+  <data name="FileType_SvgImage" xml:space="preserve"><value>Imagen SVG</value></data>
+  <data name="FileType_BetterPixelPaint" xml:space="preserve"><value>Better Pixel Paint File</value></data>
+  <data name="FileType_PixelPaint" xml:space="preserve"><value>Pixel Paint File</value></data>
+  <data name="FileType_PngImage" xml:space="preserve"><value>Imagen PNG</value></data>
+  <data name="FileType_BmpImage" xml:space="preserve"><value>Imagen BMP</value></data>
+</root>
+
