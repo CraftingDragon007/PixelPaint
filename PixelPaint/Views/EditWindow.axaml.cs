@@ -85,7 +85,7 @@ public partial class EditWindow : Window
         ZoomFitButton.Click += (_, _) => ZoomToFit();
 
         _drawingService.ImageChanged += DrawingServiceOnImageChanged;
-        _drawingService.OtherColorChanged += (sender, color) =>
+        _drawingService.OtherColorChanged += (_, color) =>
         {
             OtherColorRadioButton.Background = new SolidColorBrush(color);
             OtherColorRadioButton.Foreground = new SolidColorBrush(_drawingService.GetContrastColor(color));
@@ -381,13 +381,20 @@ public partial class EditWindow : Window
             _drawingService.LoadImage(image);
             _currentFilePath = null;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ShouldHandleRuntimeExceptions())
         {
             await MessageBoxManager
                 .GetMessageBoxStandard("Fehler beim Importieren", ex.Message)
                 .ShowAsPopupAsync(this);
         }
     }
+
+    private static bool ShouldHandleRuntimeExceptions() =>
+#if DEBUG
+        false;
+#else
+        true;
+#endif
 
     private void OnColorRadioButtonIsCheckedChanged(object? sender, RoutedEventArgs e)
     {
