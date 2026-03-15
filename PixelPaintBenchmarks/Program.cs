@@ -43,6 +43,9 @@ public class BitmapImportBenchmarks
     private string _webpPath         = null!;
     private string _qoiPath          = null!;
     private string _axpPath          = null!;
+    private string _axpSavePath      = null!;
+    private PixelPaint.Models.Image _axpSaveSourceImage = null!;
+    private (uint width, uint height) _axpSaveEditorSize;
 
     private FileService _fileService = null!;
 
@@ -82,6 +85,20 @@ public class BitmapImportBenchmarks
         _axpPath = Path.Combine(AppContext.BaseDirectory, "benchmark_sample.axp");
         var axpSourceImage = _fileService.ImportImage(_rgba32PngPath);
         _fileService.SaveImage(axpSourceImage, _axpPath, ((uint)axpSourceImage.PixelCountX, (uint)axpSourceImage.PixelCountY));
+
+        _axpSavePath = Path.Combine(AppContext.BaseDirectory, "benchmark_save.axp");
+        _axpSaveSourceImage = axpSourceImage;
+        _axpSaveEditorSize = ((uint)axpSourceImage.PixelCountX, (uint)axpSourceImage.PixelCountY);
+    }
+
+    [GlobalCleanup]
+    public void Cleanup()
+    {
+        if (File.Exists(_axpPath))
+            File.Delete(_axpPath);
+
+        if (File.Exists(_axpSavePath))
+            File.Delete(_axpSavePath);
     }
 
     // ── Avalonia CopyPixels path ──────────────────────────────────────────────
@@ -138,4 +155,7 @@ public class BitmapImportBenchmarks
 
     [Benchmark(Description = "AXP – Load")]
     public object LoadAxp() => _fileService.LoadImage(_axpPath);
+
+    [Benchmark(Description = "AXP – Save")]
+    public void SaveAxp() => _fileService.SaveImage(_axpSaveSourceImage, _axpSavePath, _axpSaveEditorSize);
 }
