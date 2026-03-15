@@ -9,6 +9,7 @@ public static class ServiceCollectionExtensions
     public static void AddCommonServices(this ServiceCollection services)
     {
         services.AddSingleton(LocalizationService.Instance);
+        services.AddSingleton<IUserPreferencesStore, UserPreferencesStore>();
         services.AddTransient<IFileService, FileService>();
         services.AddSingleton<EditorZoomController>();
         services.AddTransient<IDrawingService, DrawingService>();

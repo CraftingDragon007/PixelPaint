@@ -50,7 +50,14 @@ public sealed class LocalizationService : INotifyPropertyChanged
         if (string.IsNullOrWhiteSpace(cultureName))
             return;
 
-        SetCulture(new CultureInfo(cultureName));
+        try
+        {
+            SetCulture(CultureInfo.GetCultureInfo(cultureName));
+        }
+        catch (CultureNotFoundException)
+        {
+            // Ignore invalid persisted culture values and keep current culture.
+        }
     }
 
     public void SetCulture(CultureInfo culture)
@@ -107,8 +114,7 @@ public sealed class LocalizationService : INotifyPropertyChanged
         }
 
         return cultureByName.Values
-            .OrderBy(culture => culture.Name.Equals(FallbackCulture.Name, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
-            .ThenBy(culture => culture.NativeName, StringComparer.CurrentCultureIgnoreCase)
+            .OrderBy(culture => culture.NativeName, StringComparer.CurrentCultureIgnoreCase)
             .ToArray();
     }
 

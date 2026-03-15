@@ -26,23 +26,25 @@ public partial class EditWindow : Window
     private readonly IFileService _fileService;
     private readonly EditorZoomController _zoomController;
     private readonly LocalizationService _localizationService;
+    private readonly IUserPreferencesStore _userPreferencesStore;
     private readonly List<MenuItem> _languageMenuItems = [];
     private string? _currentFilePath;
     private bool _isDrawing;
     private bool _fitZoomAfterRefresh = true;
     private double? _pinchStartZoom;
 
-    public EditWindow() : this(new DrawingService(), new FileService(), new EditorZoomController(), LocalizationService.Instance)
+    public EditWindow() : this(new DrawingService(), new FileService(), new EditorZoomController(), LocalizationService.Instance, new UserPreferencesStore())
     {
     }
 
-    public EditWindow(IDrawingService drawingService, IFileService fileService, EditorZoomController zoomController, LocalizationService localizationService)
+    public EditWindow(IDrawingService drawingService, IFileService fileService, EditorZoomController zoomController, LocalizationService localizationService, IUserPreferencesStore userPreferencesStore)
     {
         InitializeComponent();
         _drawingService = drawingService;
         _fileService = fileService;
         _zoomController = zoomController;
         _localizationService = localizationService;
+        _userPreferencesStore = userPreferencesStore;
 
         var random = new Random();
         var buffer = new byte[3];
@@ -116,6 +118,7 @@ public partial class EditWindow : Window
 
     private void LocalizationServiceOnCultureChanged(object? sender, CultureInfo e)
     {
+        PersistPreferredCulture(e);
         UpdateLanguageMenuState();
         UpdateZoomUi();
         UpdateBrushSizeUi(_drawingService.BrushSize);
@@ -123,6 +126,22 @@ public partial class EditWindow : Window
         var image = _drawingService.CurrentImage;
         if (image is not null)
             UpdateImageSizeUi(image);
+    }
+
+    private void PersistPreferredCulture(CultureInfo culture)
+    {
+        try
+        {
+            var currentPreferences = _userPreferencesStore.Load();
+            if (string.Equals(currentPreferences.PreferredCulture, culture.Name, StringComparison.OrdinalIgnoreCase))
+                return;
+
+            _userPreferencesStore.Save(new UserPreferences { PreferredCulture = culture.Name });
+        }
+        catch
+        {
+            // Failing to persist preferences must not break runtime language switching.
+        }
     }
 
     private void UpdateLanguageMenuState()
