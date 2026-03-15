@@ -650,6 +650,10 @@ public partial class EditWindow : Window
         var maximumViewportWidth = currentViewport.Width > 0 ? currentViewport.Width : image.PixelCountX;
         var maximumViewportHeight = currentViewport.Height > 0 ? currentViewport.Height : image.PixelCountY;
 
+        // Ensure max >= min before clamping (current viewport can be smaller than the minimum window size).
+        maximumViewportWidth  = Math.Max(maximumViewportWidth,  minimumViewportWidth);
+        maximumViewportHeight = Math.Max(maximumViewportHeight, minimumViewportHeight);
+
         // Grow only up to the current viewport to avoid near-fullscreen jumps on very large images.
         var targetViewportWidth = Math.Clamp(image.PixelCountX, minimumViewportWidth, maximumViewportWidth);
         var targetViewportHeight = Math.Clamp(image.PixelCountY, minimumViewportHeight, maximumViewportHeight);
