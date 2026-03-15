@@ -65,6 +65,7 @@ public partial class EditWindow : Window
             handledEventsToo: true);
         EditorScrollViewer.AddHandler(Gestures.PinchEvent, OnPinchGesture);
         EditorScrollViewer.AddHandler(Gestures.PinchEndedEvent, OnPinchGestureEnded);
+        EditorScrollViewer.ScrollChanged += (_, _) => SyncCanvasViewport();
 
         ShowGridLinesCheckBox.IsCheckedChanged += ShowGridLinesCheckBoxOnIsCheckedChanged;
         BrushSizeSlider.ValueChanged += BrushSizeSliderOnValueChanged;
@@ -640,6 +641,12 @@ public partial class EditWindow : Window
 
         Width = desiredWidth;
         Height = desiredHeight;
+    }
+
+    private void SyncCanvasViewport()
+    {
+        PixelCanvas.ScrollViewportOffset = EditorScrollViewer.Offset;
+        PixelCanvas.ScrollViewportSize   = GetViewportSize();
     }
 }
 

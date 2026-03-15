@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -15,6 +15,7 @@ namespace PixelPaint.Controls;
 public sealed class PixelCanvas : Control
 {
     private const double TransparencyTileSize = 12d;
+    private const int ParallelPixelThreshold = 65_536;
 
     public static readonly StyledProperty<double> ZoomProperty =
         AvaloniaProperty.Register<PixelCanvas, double>(nameof(Zoom), 1d);
@@ -28,6 +29,7 @@ public sealed class PixelCanvas : Control
     private static readonly Pen GridPen = new(new SolidColorBrush(Color.FromArgb(96, 128, 128, 128)));
     private static readonly SolidColorBrush TransparencyLightBrush = new(Color.FromRgb(236, 236, 236));
     private static readonly SolidColorBrush TransparencyDarkBrush = new(Color.FromRgb(208, 208, 208));
+    private static readonly IBrush TransparencyTileBrush = CreateTransparencyTileBrush();
 
     private Image? _image;
     private WriteableBitmap? _bitmap;
@@ -42,8 +44,8 @@ public sealed class PixelCanvas : Control
     {
         RenderOptions.SetBitmapInterpolationMode(this, BitmapInterpolationMode.None);
         ClipToBounds = true;
-        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left;
-        VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top;
+        HorizontalAlignment = HorizontalAlignment.Left;
+        VerticalAlignment = VerticalAlignment.Top;
         UseLayoutRounding = true;
     }
 
@@ -67,6 +69,12 @@ public sealed class PixelCanvas : Control
 
     public Image? CurrentImage => _image;
 
+    /// <summary>Current scroll offset of the host ScrollViewer in canvas (zoomed) coordinates.</summary>
+    public Vector ScrollViewportOffset { get; set; }
+
+    /// <summary>Visible area of the host ScrollViewer in canvas (zoomed) coordinates.</summary>
+    public Size ScrollViewportSize { get; set; }
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -87,39 +95,6 @@ public sealed class PixelCanvas : Control
 
         if (ShowGridLines && Zoom >= 8)
             DrawGridLines(context, contentBounds.Size);
-    }
-
-    private static void DrawTransparencyBackground(DrawingContext context, Rect bounds)
-    {
-        if (bounds.Width <= 0 || bounds.Height <= 0)
-            return;
-
-        for (var y = 0d; y < bounds.Height; y += TransparencyTileSize)
-        {
-            var rowIndex = (int)(y / TransparencyTileSize);
-            var tileHeight = Math.Min(TransparencyTileSize, bounds.Height - y);
-
-            for (var x = 0d; x < bounds.Width; x += TransparencyTileSize)
-            {
-                var columnIndex = (int)(x / TransparencyTileSize);
-                var tileWidth = Math.Min(TransparencyTileSize, bounds.Width - x);
-                var brush = (rowIndex + columnIndex) % 2 == 0
-                    ? TransparencyLightBrush
-                    : TransparencyDarkBrush;
-
-                context.FillRectangle(brush, new Rect(x, y, tileWidth, tileHeight));
-            }
-        }
-    }
-
-    protected override Size MeasureOverride(Size availableSize)
-    {
-        return GetContentSize();
-    }
-
-    protected override Size ArrangeOverride(Size finalSize)
-    {
-        return GetContentSize();
     }
 
     public void SetImage(Image image)
@@ -182,6 +157,18 @@ public sealed class PixelCanvas : Control
         return (x, y);
     }
 
+    protected override Size MeasureOverride(Size availableSize) => GetContentSize();
+
+    protected override Size ArrangeOverride(Size finalSize) => GetContentSize();
+
+    private Size GetContentSize()
+    {
+        if (_image is null)
+            return default;
+
+        return new Size(_image.PixelCountX * Zoom, _image.PixelCountY * Zoom);
+    }
+
     private void EnsureBitmapMatchesImage()
     {
         if (_image is null)
@@ -214,35 +201,60 @@ public sealed class PixelCanvas : Control
         WriteEntireImageToBitmap();
     }
 
-    private void WriteEntireImageToBitmap()
+    private unsafe void WriteEntireImageToBitmap()
     {
         if (_image is null || _bitmap is null)
             return;
 
         using var buffer = _bitmap.Lock();
-        for (var y = 0; y < _image.PixelCountY; y++)
-        for (var x = 0; x < _image.PixelCountX; x++)
-            WritePixel(buffer, x, y, _image.Pixels[x, y]);
+        var basePtr = (byte*)buffer.Address;
+        var rowBytes = buffer.RowBytes;
+        var width = _image.PixelCountX;
+        var height = _image.PixelCountY;
+        var pixels = _image.Pixels;
+
+        if (width * height >= ParallelPixelThreshold)
+        {
+            Parallel.For(0, height, y => WriteImageRow(basePtr + y * rowBytes, pixels, y, width));
+        }
+        else
+        {
+            for (var y = 0; y < height; y++)
+                WriteImageRow(basePtr + y * rowBytes, pixels, y, width);
+        }
     }
 
-    private static void WritePixel(ILockedFramebuffer buffer, int x, int y, Color color)
+    private static unsafe void WriteImageRow(byte* rowPtr, Color[,] pixels, int y, int width)
+    {
+        for (var x = 0; x < width; x++)
+        {
+            var color = pixels[x, y];
+            var pixel = rowPtr + x * 4;
+            pixel[0] = color.B;
+            pixel[1] = color.G;
+            pixel[2] = color.R;
+            pixel[3] = color.A;
+        }
+    }
+
+    private static unsafe void WritePixel(ILockedFramebuffer buffer, int x, int y, Color color)
     {
         if (x < 0 || y < 0 || x >= buffer.Size.Width || y >= buffer.Size.Height)
             return;
 
-        var offset = y * buffer.RowBytes + x * 4;
-        Marshal.WriteByte(buffer.Address, offset, color.B);
-        Marshal.WriteByte(buffer.Address, offset + 1, color.G);
-        Marshal.WriteByte(buffer.Address, offset + 2, color.R);
-        Marshal.WriteByte(buffer.Address, offset + 3, color.A);
+        var pixel = (byte*)buffer.Address + y * buffer.RowBytes + x * 4;
+        pixel[0] = color.B;
+        pixel[1] = color.G;
+        pixel[2] = color.R;
+        pixel[3] = color.A;
     }
 
-    private Size GetContentSize()
+    private static void DrawTransparencyBackground(DrawingContext context, Rect bounds)
     {
-        if (_image is null)
-            return default;
+        if (bounds.Width <= 0 || bounds.Height <= 0)
+            return;
 
-        return new Size(_image.PixelCountX * Zoom, _image.PixelCountY * Zoom);
+        context.FillRectangle(TransparencyTileBrush, bounds);
     }
 
     private void DrawGridLines(DrawingContext context, Size contentSize)
@@ -250,17 +262,67 @@ public sealed class PixelCanvas : Control
         if (_image is null)
             return;
 
-        for (var x = 0; x <= _image.PixelCountX; x++)
+        var visibleBounds = GetVisibleGridBounds(contentSize);
+
+        for (var col = visibleBounds.firstCol; col <= visibleBounds.lastCol; col++)
         {
-            var position = x * Zoom;
-            context.DrawLine(GridPen, new Point(position, 0), new Point(position, contentSize.Height));
+            var x = col * Zoom;
+            context.DrawLine(GridPen,
+                new Point(x, visibleBounds.firstRow * Zoom),
+                new Point(x, visibleBounds.lastRow * Zoom));
         }
 
-        for (var y = 0; y <= _image.PixelCountY; y++)
+        for (var row = visibleBounds.firstRow; row <= visibleBounds.lastRow; row++)
         {
-            var position = y * Zoom;
-            context.DrawLine(GridPen, new Point(0, position), new Point(contentSize.Width, position));
+            var y = row * Zoom;
+            context.DrawLine(GridPen,
+                new Point(visibleBounds.firstCol * Zoom, y),
+                new Point(visibleBounds.lastCol * Zoom, y));
         }
     }
-}
 
+    private (int firstCol, int lastCol, int firstRow, int lastRow) GetVisibleGridBounds(Size contentSize)
+    {
+        var viewportWidth = ScrollViewportSize.Width > 0 ? ScrollViewportSize.Width : contentSize.Width;
+        var viewportHeight = ScrollViewportSize.Height > 0 ? ScrollViewportSize.Height : contentSize.Height;
+        var scrollX = ScrollViewportOffset.X;
+        var scrollY = ScrollViewportOffset.Y;
+
+        var firstCol = Math.Max(0, (int)Math.Floor(scrollX / Zoom));
+        var lastCol = Math.Min(_image!.PixelCountX, (int)Math.Ceiling((scrollX + viewportWidth) / Zoom));
+        var firstRow = Math.Max(0, (int)Math.Floor(scrollY / Zoom));
+        var lastRow = Math.Min(_image.PixelCountY, (int)Math.Ceiling((scrollY + viewportHeight) / Zoom));
+
+        return (firstCol, lastCol, firstRow, lastRow);
+    }
+
+    private static IBrush CreateTransparencyTileBrush()
+    {
+        var tileSize = TransparencyTileSize;
+        var patternSize = tileSize * 2;
+
+        var drawing = new DrawingGroup();
+        drawing.Children.Add(new GeometryDrawing
+        {
+            Brush = TransparencyLightBrush,
+            Geometry = new RectangleGeometry(new Rect(0, 0, patternSize, patternSize))
+        });
+        drawing.Children.Add(new GeometryDrawing
+        {
+            Brush = TransparencyDarkBrush,
+            Geometry = new RectangleGeometry(new Rect(0, tileSize, tileSize, tileSize))
+        });
+        drawing.Children.Add(new GeometryDrawing
+        {
+            Brush = TransparencyDarkBrush,
+            Geometry = new RectangleGeometry(new Rect(tileSize, 0, tileSize, tileSize))
+        });
+
+        return new DrawingBrush(drawing)
+        {
+            TileMode = TileMode.Tile,
+            DestinationRect = new RelativeRect(0, 0, patternSize, patternSize, RelativeUnit.Absolute),
+            SourceRect = new RelativeRect(0, 0, 1, 1, RelativeUnit.Relative)
+        };
+    }
+}

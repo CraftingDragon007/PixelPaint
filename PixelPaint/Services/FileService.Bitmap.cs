@@ -14,7 +14,7 @@ public partial class FileService
     /// </summary>
     /// <param name="path">Absolute path to the PNG or BMP file.</param>
     /// <returns>A new <see cref="Image"/> whose dimensions match the source file.</returns>
-    private static Image ImportImageFromBitmap(string path)
+    private static unsafe Image ImportImageFromBitmap(string path)
     {
         using var sourceBitmap = new Bitmap(path);
 
@@ -24,9 +24,9 @@ public partial class FileService
         // CopyPixels produces BGRA8888 (unpremultiplied) data.
         var stride = width * 4;
         var bufferSize = stride * height;
-        var buffer = new byte[bufferSize];
+        var pixelBuffer = new byte[bufferSize];
 
-        var handle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+        var handle = GCHandle.Alloc(pixelBuffer, GCHandleType.Pinned);
         try
         {
             sourceBitmap.CopyPixels(
@@ -42,19 +42,19 @@ public partial class FileService
 
         var image = CreateImage(width, height);
 
-        for (var y = 0; y < height; y++)
-        for (var x = 0; x < width; x++)
+        fixed (byte* dataPtr = pixelBuffer)
         {
-            var offset = y * stride + x * 4;
-            var b = buffer[offset];
-            var g = buffer[offset + 1];
-            var r = buffer[offset + 2];
-            var a = buffer[offset + 3];
-
-            image.Pixels[x, y] = Color.FromArgb(a, r, g, b);
+            for (var y = 0; y < height; y++)
+            {
+                var row = dataPtr + y * stride;
+                for (var x = 0; x < width; x++)
+                {
+                    var pixelPtr = row + x * 4;
+                    image.Pixels[x, y] = Color.FromArgb(pixelPtr[3], pixelPtr[2], pixelPtr[1], pixelPtr[0]);
+                }
+            }
         }
 
         return image;
     }
 }
-
