@@ -48,15 +48,15 @@ public enum Tool
 
 public class DrawingService : IDrawingService
 {
-    private const int DefaultPixelCountX = 32;
-    private const int DefaultPixelCountY = 16;
+    private const int DefaultPixelCountX = 1280;
+    private const int DefaultPixelCountY = 720;
     private const int MaxBrushSize = 256;
 
     private Image? _image;
     private StrokeSession? _currentStroke;
     private readonly Stack<PixelEditOperation> _undoStack = new();
     private readonly Stack<PixelEditOperation> _redoStack = new();
-    private int _brushSize = 1;
+    private int _brushSize = 10;
 
     public bool CanUndo => _undoStack.Count > 0;
     public bool CanRedo => _redoStack.Count > 0;

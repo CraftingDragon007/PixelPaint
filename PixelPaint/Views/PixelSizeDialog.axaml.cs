@@ -5,7 +5,7 @@ namespace PixelPaint.Views;
 
 public partial class PixelSizeDialog : Window
 {
-    public PixelSizeDialog() : this(32, 16)
+    public PixelSizeDialog() : this(1280, 720)
     {
     }
 
@@ -20,7 +20,7 @@ public partial class PixelSizeDialog : Window
 
     private void OkButtonOnClick(object? sender, RoutedEventArgs e)
     {
-        Close(((int)(WidthInput.Value ?? 32), (int)(HeightInput.Value ?? 16)));
+        Close(((int)(WidthInput.Value ?? 1280), (int)(HeightInput.Value ?? 720)));
     }
 
     private void CancelButtonOnClick(object? sender, RoutedEventArgs e)

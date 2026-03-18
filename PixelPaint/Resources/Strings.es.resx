@@ -7,7 +7,7 @@
   <data name="App_Title" xml:space="preserve"><value>PixelPaint</value></data>
   <data name="Menu_File" xml:space="preserve"><value>Archivo</value></data>
   <data name="Menu_File_Open" xml:space="preserve"><value>Abrir</value></data>
-  <data name="Menu_File_Import" xml:space="preserve"><value>Importar (JPEG, BMP, GIF, PBM, PGM, PPM, PNG, TGA, TIFF, WebP, QOI)...</value></data>
+  <data name="Menu_File_Import" xml:space="preserve"><value>Importar (png, jpg, bmp, ...)</value></data>
   <data name="Menu_File_Save" xml:space="preserve"><value>Guardar</value></data>
   <data name="Menu_File_SaveAs" xml:space="preserve"><value>Guardar como...</value></data>
   <data name="Menu_File_Reset" xml:space="preserve"><value>Restablecer</value></data>

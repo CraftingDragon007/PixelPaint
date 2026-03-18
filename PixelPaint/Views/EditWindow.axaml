@@ -132,7 +132,7 @@
                     <Separator Margin="0,12,0,4" />
 
                     <TextBlock Text="{loc:Loc Label_ImageSize}" FontWeight="Bold" />
-                    <TextBlock Name="ImageSizeTextBlock" Text="32 × 16" />
+                    <TextBlock Name="ImageSizeTextBlock" Text="1280 × 720" />
 
                     <TextBlock Text="{loc:Loc Label_Zoom}" FontWeight="Bold" Margin="0,8,0,0" />
                     <TextBlock Name="ZoomTextBlock" Text="100 %" />
@@ -149,11 +149,11 @@
                     <Slider Name="BrushSizeSlider"
                             Minimum="1"
                             Maximum="256"
-                            Value="1"
+                            Value="10"
                             TickFrequency="1"
                             IsSnapToTickEnabled="True"
                             MaxWidth="120" />
-                    <TextBlock Name="BrushSizeTextBlock" Text="1 px" />
+                    <TextBlock Name="BrushSizeTextBlock" Text="10 px" />
 
                     <!-- Show Grid Lines Option -->
                     <CheckBox Name="ShowGridLinesCheckBox" Content="{loc:Loc Label_ShowGridLines}" IsChecked="True" Margin="0,8,0,0" />

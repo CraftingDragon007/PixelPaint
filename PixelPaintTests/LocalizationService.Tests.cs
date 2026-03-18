@@ -113,6 +113,13 @@ public class LocalizationServiceTests
     }
 
     [Test]
+    public void MenuFileImport_UsesShortFormatList()
+    {
+        LocalizationService.Instance.SetCulture("en");
+        Assert.That(LocalizationService.Instance["Menu_File_Import"], Is.EqualTo("Import (png, jpg, bmp, ...)"));
+    }
+
+    [Test]
     public void SetCulture_RaisesCultureChanged_WhenLanguageChanges()
     {
         CultureInfo? changedCulture = null;

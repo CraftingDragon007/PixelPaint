@@ -16,6 +16,27 @@ public class DrawingServiceTests
     }
 
     [Test]
+    public void DrawEmptyImage_Uses720pDefaults()
+    {
+        _drawingService.DrawEmptyImage();
+
+        var image = _drawingService.CurrentImage;
+        Assert.That(image, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(image!.PixelCountX, Is.EqualTo(1280));
+            Assert.That(image.PixelCountY, Is.EqualTo(720));
+            Assert.That(image.PixelCount, Is.EqualTo(1280 * 720));
+        }
+    }
+
+    [Test]
+    public void NewDrawingService_UsesBrushSizeTenByDefault()
+    {
+        Assert.That(_drawingService.BrushSize, Is.EqualTo(10));
+    }
+
+    [Test]
     public void BrushStroke_WithLargerBrush_PaintsArea_AndUndoRedoWorksAsSingleOperation()
     {
         _drawingService.CurrentTool = Tool.Brush;

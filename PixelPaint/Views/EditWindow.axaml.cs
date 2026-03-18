@@ -308,8 +308,8 @@ public partial class EditWindow : Window
     private async void PixelSizeMenuItemOnClick(object? sender, RoutedEventArgs e)
     {
         var currentImage = _drawingService.CurrentImage;
-        var currentCols = currentImage?.PixelCountX ?? 32;
-        var currentRows = currentImage?.PixelCountY ?? 16;
+        var currentCols = currentImage?.PixelCountX ?? 1280;
+        var currentRows = currentImage?.PixelCountY ?? 720;
 
         var dialog = new PixelSizeDialog(currentCols, currentRows);
         var result = await dialog.ShowDialog<(int width, int height)?>(this);
